@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const leaderboardSchema = new mongoose.Schema({
   contest: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Course",
+    ref: "Contest",
     required: true,
   },
   user: {

@@ -10,9 +10,6 @@ const feedbackSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  page: {
-    type: String, // Optional - where the feedback was submitted from
-  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -8,7 +8,7 @@ const contestProgressSchema = new mongoose.Schema({
   },
   contest: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Course",
+    ref: "Contest",
     required: true,
   },
   completedQuestions: [
