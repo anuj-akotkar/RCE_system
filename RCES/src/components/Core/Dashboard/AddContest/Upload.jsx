@@ -7,7 +7,6 @@ import { useSelector } from "react-redux"
 export default function Upload({
   name,
   label,
-  register,
   setValue,
   errors,
   viewData = null,
@@ -42,10 +41,10 @@ export default function Upload({
     }
   }
 
-  useEffect(() => {
-    register(name, { required: true })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [register])
+  // useEffect(() => {
+  //   register(name, { required: true })
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [register])
 
   useEffect(() => {
     setValue(name, selectedFile)

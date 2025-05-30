@@ -29,7 +29,7 @@ const ContestDetailsPage = () => {
   }, [contestId, token]);
 
   const handleStartTest = () => {
-    navigate(`/contest/${contestId}/take`);
+    navigate(`/contests/${contestId}/take`);
   };
 
   if (loading) {

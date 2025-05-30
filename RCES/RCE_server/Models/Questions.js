@@ -45,6 +45,14 @@ const questionSchema = new mongoose.Schema(
         ref: "TestCase",
       },
     ],
+     sampleInputs: {
+      type: [String],
+      default: [],
+    },
+    sampleOutputs: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );

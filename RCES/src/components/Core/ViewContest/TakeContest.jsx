@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import QuestionPanel from "./QuestionPanel";
 import CodeEditor from "./CodeEditor";
 import OutputPanel from "./OutputPanel";
@@ -16,16 +17,18 @@ const TakeContest = () => {
   const [language, setLanguage] = useState("cpp");
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const { token } = useSelector((state) => state.auth);
   // Fetch contest questions from API
-  useEffect(() => {
+    useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const res = await apiConnector(
           "GET",
-          `${GET_FULL_CONTEST_DETAILS_API}/${contestId}`
+          `${GET_FULL_CONTEST_DETAILS_API}/${contestId}`,
+          null,
+          { Authorization: `Bearer ${token}` } // <-- pass token here
         );
-        // Adjust according to your API response structure
+        console.log("Contest Questions:", res.data);
         const contestQuestions = res.data?.contest?.questions || [];
         setQuestions(contestQuestions);
         setSelected(contestQuestions[0]);
@@ -33,8 +36,8 @@ const TakeContest = () => {
         setQuestions([]);
       }
     };
-    fetchQuestions();
-  }, [contestId]);
+    if (token) fetchQuestions();
+  }, [contestId, token]);
 
   // Handler for running code
   const handleRun = async (code) => {

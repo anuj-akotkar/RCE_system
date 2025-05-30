@@ -27,7 +27,7 @@ export const contestEndpoints = {
   CREATE_SECTION_API: BASE_URL + "/contests/section/create",
   EDIT_SECTION_API: BASE_URL + "/contests/section/edit",
   DELETE_SECTION_API: BASE_URL + "/contests/section/delete",
-  GET_FULL_CONTEST_DETAILS_API: BASE_URL + "/contests/full",
+  GET_FULL_CONTEST_DETAILS_API: BASE_URL + "/contests/getFullContestDetails",
   GET_ALL_INSTRUCTOR_CONTESTS_API: BASE_URL + "/contests/getInstructorContests", // Usage: /full/:id
 };
 
