@@ -2,7 +2,7 @@ import React from "react";
 
 const QuestionPanel = ({ questions, selected, onSelect }) => {
   return (
-    <div className="bg-white p-4 rounded-lg shadow h-full">
+    <div className="bg-black p-4 rounded-lg shadow h-full">
       <h2 className="text-2xl font-extrabold mb-6 text-blue-800 tracking-wide">Questions</h2>
       <ul className="space-y-2 mb-6">
         {questions.map((q, index) => (

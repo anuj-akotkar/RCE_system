@@ -50,8 +50,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // Default to false for instructors
     },
-    resetPasswordToken: String,
-    resetPasswordExpires: Date,
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

@@ -4,16 +4,16 @@ const OutputPanel = ({ output }) => {
   if (!output) return null;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow text-sm">
+    <div className="bg-black p-4 rounded-lg shadow text-pure-greys-400 h-full">
       <h2 className="text-lg font-semibold mb-2">Output</h2>
 
       {output.success ? (
-        <div className="text-green-600">
+        <div>
           {output?.results?.map((res, i) => (
             <div key={i} className="mb-1">
               ✅ Test Case {res.testCase}: {res.passed ? "Passed" : "Failed"}
               {!res.passed && (
-                <div className="text-red-500 ml-2">
+                <div className="ml-2">
                   <strong>Expected:</strong> {res.expected} <br />
                   <strong>Got:</strong> {res.output}
                 </div>
@@ -22,7 +22,7 @@ const OutputPanel = ({ output }) => {
           ))}
         </div>
       ) : (
-        <div className="text-red-600">
+        <div>
           ❌ {output.error || "Something went wrong"}
         </div>
       )}

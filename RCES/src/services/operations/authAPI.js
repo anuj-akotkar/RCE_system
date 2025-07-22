@@ -9,8 +9,8 @@ const {
   SENDOTP_API,
   SIGNUP_API,
   LOGIN_API,
-  RESETPASSTOKEN_API,
-  RESETPASSWORD_API,
+  RESET_PASSWORD_TOKEN_API,
+  RESET_PASSWORD_API,
 } = authEndpoints
 
 export function sendOtp(email, navigate) {
@@ -122,7 +122,7 @@ export function getPasswordResetToken(email, setEmailSent) {
     const toastId = toast.loading("Loading...")
     dispatch(setLoading(true))
     try {
-      const response = await apiConnector("POST", RESETPASSTOKEN_API, {
+      const response = await apiConnector("POST", RESET_PASSWORD_TOKEN_API, {
         email,
       })
 
@@ -148,7 +148,7 @@ export function resetPassword(password, confirmPassword, token, navigate) {
     const toastId = toast.loading("Loading...")
     dispatch(setLoading(true))
     try {
-      const response = await apiConnector("POST", RESETPASSWORD_API, {
+      const response = await apiConnector("POST", RESET_PASSWORD_API, {
         password,
         confirmPassword,
         token,
