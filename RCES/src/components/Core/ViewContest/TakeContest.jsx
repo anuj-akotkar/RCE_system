@@ -4,11 +4,11 @@ import { useSelector } from "react-redux";
 import QuestionPanel from "./QuestionPanel";
 import CodeEditor from "./CodeEditor";
 import OutputPanel from "./OutputPanel";
-import { contestEndpoints, codeEndpoints } from "../../../services/apis";
+import { contestEndpoints } from "../../../services/apis";
 import { apiConnector } from "../../../services/apiconnector";
+import { runCode, submitCode } from "../../../services/operations/codeAPI";
 
 const { GET_FULL_CONTEST_DETAILS_API } = contestEndpoints;
-const { RUN_CODE_API, SUBMIT_CODE_API } = codeEndpoints;
 
 const TakeContest = () => {
   const { contestId } = useParams();
@@ -18,63 +18,85 @@ const TakeContest = () => {
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
-  // Fetch contest questions from API
-    useEffect(() => {
+
+  useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const res = await apiConnector(
           "GET",
           `${GET_FULL_CONTEST_DETAILS_API}/${contestId}`,
           null,
-          { Authorization: `Bearer ${token}` } // <-- pass token here
+          { Authorization: `Bearer ${token}` }
         );
         console.log("Contest Questions:", res.data);
         const contestQuestions = res.data?.contest?.questions || [];
         setQuestions(contestQuestions);
         setSelected(contestQuestions[0]);
       } catch (err) {
+        console.error("Error fetching contest questions:", err);
         setQuestions([]);
       }
     };
     if (token) fetchQuestions();
   }, [contestId, token]);
 
-  // Handler for running code
   const handleRun = async (code) => {
+    if (!selected) {
+      console.error("No question selected");
+      return;
+    }
+
     setLoading(true);
+    setOutput(null);
+
     try {
-      const res = await apiConnector("POST", RUN_CODE_API, {
+      const result = await runCode({
         code,
         language,
         questionId: selected._id,
       });
-      setOutput(res.data);
+      setOutput(result);
     } catch (err) {
-      setOutput({ error: "Run failed" });
+      console.error("Run code error:", err);
+      setOutput({
+        success: false,
+        error: "Run failed",
+        message: err.message || "Failed to execute code",
+      });
     }
     setLoading(false);
   };
 
-  // Handler for submitting code
   const handleSubmit = async (code) => {
+    if (!selected) {
+      console.error("No question selected");
+      return;
+    }
+
     setLoading(true);
+    setOutput(null);
+
     try {
-      const res = await apiConnector("POST", SUBMIT_CODE_API, {
+      const result = await submitCode({
         code,
         language,
         questionId: selected._id,
         contestId,
       });
-      setOutput(res.data);
+      setOutput(result);
     } catch (err) {
-      setOutput({ error: "Submit failed" });
+      console.error("Submit code error:", err);
+      setOutput({
+        success: false,
+        error: "Submit failed",
+        message: err.message || "Failed to submit code",
+      });
     }
     setLoading(false);
   };
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
-      {/* Left: Question Panel */}
       <div className="w-1/2 border-r bg-gray-50 p-4 overflow-y-auto">
         <QuestionPanel
           questions={questions}
@@ -82,7 +104,6 @@ const TakeContest = () => {
           onSelect={setSelected}
         />
       </div>
-      {/* Right: Code Editor and Output */}
       <div className="w-1/2 flex flex-col bg-gray-100 p-4">
         <CodeEditor
           language={language}
@@ -91,7 +112,7 @@ const TakeContest = () => {
           onSubmit={handleSubmit}
           loading={loading}
         />
-        <div className="mt-4">
+        <div className="mt-4 flex-1">
           <OutputPanel output={output} />
         </div>
       </div>

@@ -1,9 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
+import SubmissionHistory from "./SubmissionHistory";
 
 const QuestionPanel = ({ questions, selected, onSelect }) => {
+  const [showSubmissions, setShowSubmissions] = useState(false);
+
   return (
     <div className="bg-black p-4 rounded-lg shadow h-full">
-      <h2 className="text-2xl font-extrabold mb-6 text-blue-800 tracking-wide">Questions</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-extrabold text-blue-800 tracking-wide">Questions</h2>
+        {selected && (
+          <button
+            onClick={() => setShowSubmissions(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+          >
+            View Submissions
+          </button>
+        )}
+      </div>
+
       <ul className="space-y-2 mb-6">
         {questions.map((q, index) => (
           <li
@@ -55,6 +69,12 @@ const QuestionPanel = ({ questions, selected, onSelect }) => {
           </div>
         </div>
       )}
+
+      <SubmissionHistory
+        questionId={selected?._id}
+        isOpen={showSubmissions}
+        onClose={() => setShowSubmissions(false)}
+      />
     </div>
   );
 };
