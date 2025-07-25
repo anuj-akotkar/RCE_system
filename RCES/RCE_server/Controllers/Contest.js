@@ -5,7 +5,6 @@ const TestCase = require("../Models/Testcases");
 const mongoose = require("mongoose");
 const ContestFileManager = require("../Services/ContestFileManager");
 const BoilerplateGeneratorService = require("../boilerplate-generator/dist/index");
-
 // ✅ Create Contest
 exports.createContest = async (req, res) => {
   try {
@@ -68,20 +67,24 @@ exports.createContest = async (req, res) => {
         });
 
         // Generate boilerplate for this question
-        const contestName = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-        const problemName = q.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-        const structureMd = `Problem Name: "${q.title}"
-Function Name: ${q.functionName}
-Input Structure:
-${q.inputFields.map((field, index) => `Input Field: ${q.inputTypes[index]} ${field}`).join('\n')}
-Output Structure:
-${q.outputFields.map((field, index) => `Output Field: ${q.outputTypes[index]} ${field}`).join('\n')}`;
-        const boilerplateService = new BoilerplateGeneratorService();
-        await boilerplateService.generateBoilerplateForProblem(
-          contestName,
-          problemName,
-          structureMd,
-          q.testCases || []
+          const contestName = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+          const problemName = q.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+          const structureMd = `Problem Name: "${q.title}"
+          Function Name: ${q.functionName}
+          Input Structure:
+          ${q.inputFields.map((field, index) => `Input Field: ${q.inputTypes[index]} ${field}`).join('\n')}
+        Output Structure:
+          ${q.outputFields.map((field, index) => `Output Field: ${q.outputTypes[index]} ${field}`).join('\n')}`;
+          const boilerplateService = new BoilerplateGeneratorService();
+          const mappedTestCases = (q.testCases || []).map(tc => ({
+              input: tc.input,
+              output: tc.expectedOutput ?? tc.output ?? ""
+          }));
+          await boilerplateService.generateBoilerplateForProblem(
+            contestName,
+            problemName,
+            structureMd,
+            mappedTestCases
         );
 
         // Create test cases in database

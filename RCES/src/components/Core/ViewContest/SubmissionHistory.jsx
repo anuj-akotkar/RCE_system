@@ -8,14 +8,18 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
   const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen && questionId) fetchSubmissions();
+    if (isOpen && questionId) {
+      fetchSubmissions();
+    }
   }, [isOpen, questionId]);
 
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
       const result = await getSubmissionsByQuestion(questionId);
-      if (result?.success) setSubmissions(result.submissions || []);
+      if (result?.success) {
+        setSubmissions(result.submissions || []);
+      }
     } catch (error) {
       console.error("Error fetching submissions:", error);
     }
@@ -26,22 +30,31 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
     setDetailsLoading(true);
     try {
       const result = await getSubmissionById(submissionId);
-      if (result?.success) setSelectedSubmission(result.submission);
+      if (result?.success) {
+        setSelectedSubmission(result.submission);
+      }
     } catch (error) {
       console.error("Error fetching submission details:", error);
     }
     setDetailsLoading(false);
   };
 
-  const formatTime = (time) => (parseFloat(time) ? `${parseFloat(time)}s` : "0s");
-  const formatMemory = (memory) => (parseInt(memory) ? `${parseInt(memory)} KB` : "0 KB");
+  const formatTime = (time) => {
+    const t = parseFloat(time);
+    return t ? `${t}s` : '0s';
+  };
+
+  const formatMemory = (memory) => {
+    const m = parseInt(memory);
+    return m ? `${m} KB` : '0 KB';
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Accepted": return "text-green-400";
-      case "Wrong Answer": return "text-red-400";
-      case "Runtime Error": return "text-yellow-400";
-      default: return "text-gray-400";
+      case 'Accepted': return 'text-green-400';
+      case 'Wrong Answer': return 'text-red-400';
+      case 'Runtime Error': return 'text-yellow-400';
+      default: return 'text-gray-400';
     }
   };
 
@@ -53,17 +66,28 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-xl font-bold text-gray-800">Submission History</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl font-bold">×</button>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+          >
+            ×
+          </button>
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Left Panel */}
+          {/* Left Panel - Submissions List */}
           <div className="w-1/2 border-r overflow-y-auto p-4">
             <h3 className="text-lg font-semibold mb-4 text-gray-700">Your Submissions</h3>
+            
             {loading ? (
-              <div className="text-center py-8 text-gray-600">Loading submissions...</div>
+              <div className="text-center py-8">
+                <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-blue-500 border-t-transparent"></div>
+                <p className="mt-2 text-gray-600">Loading submissions...</p>
+              </div>
             ) : submissions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No submissions found.</div>
+              <div className="text-center py-8 text-gray-500">
+                No submissions found for this question.
+              </div>
             ) : (
               <div className="space-y-3">
                 {submissions.map((submission, index) => (
@@ -73,14 +97,21 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
                     onClick={() => viewSubmissionDetails(submission._id)}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm font-medium text-gray-600">Submission #{submissions.length - index}</span>
+                      <span className="text-sm font-medium text-gray-600">
+                        Submission #{submissions.length - index}
+                      </span>
                       <span className={`text-sm font-bold ${getStatusColor(submission.status)}`}>
-                        {submission.status || "Unknown"}
+                        {submission.status || 'Unknown'}
                       </span>
                     </div>
+                    
                     <div className="text-sm text-gray-600 space-y-1">
                       <div>Language: <span className="font-medium">{submission.language}</span></div>
-                      <div>Passed: <span className="font-medium">{submission.passedTestCases || 0}/{submission.totalTestCases || 0}</span></div>
+                      <div>
+                        Passed: <span className="font-medium">
+                          {submission.passedTestCases || 0}/{submission.totalTestCases || 0}
+                        </span>
+                      </div>
                       <div>Time: <span className="font-medium">{formatTime(submission.timeUsedSec || submission.executionTime)}</span></div>
                       <div>Memory: <span className="font-medium">{formatMemory(submission.memoryUsedMB || submission.memory)}</span></div>
                       <div className="text-xs text-gray-500">
@@ -93,17 +124,24 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
             )}
           </div>
 
-          {/* Right Panel */}
+          {/* Right Panel - Submission Details */}
           <div className="w-1/2 overflow-y-auto p-4">
             <h3 className="text-lg font-semibold mb-4 text-gray-700">Submission Details</h3>
+            
             {detailsLoading ? (
-              <div className="text-center py-8 text-gray-600">Loading details...</div>
+              <div className="text-center py-8">
+                <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-blue-500 border-t-transparent"></div>
+                <p className="mt-2 text-gray-600">Loading details...</p>
+              </div>
             ) : selectedSubmission ? (
               <div className="space-y-4">
+                {/* Submission Overview */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Overview</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>Status: <span className={`font-bold ${getStatusColor(selectedSubmission.status)}`}>{selectedSubmission.status}</span></div>
+                    <div>Status: <span className={`font-bold ${getStatusColor(selectedSubmission.status)}`}>
+                      {selectedSubmission.status}
+                    </span></div>
                     <div>Language: <span className="font-medium">{selectedSubmission.language}</span></div>
                     <div>Total Time: <span className="font-medium">{formatTime(selectedSubmission.executionTime)}</span></div>
                     <div>Max Memory: <span className="font-medium">{formatMemory(selectedSubmission.memory)}</span></div>
@@ -113,11 +151,13 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
                 {/* Code */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Code</h4>
-                  <pre className="bg-black text-green-400 p-3 rounded text-xs overflow-x-auto whitespace-pre-wrap">{selectedSubmission.code}</pre>
+                  <pre className="bg-black text-green-400 p-3 rounded text-xs overflow-x-auto">
+                    {selectedSubmission.code}
+                  </pre>
                 </div>
 
-                {/* Test Case Results */}
-                {selectedSubmission.results?.length > 0 && (
+                {/* Test Results */}
+                {selectedSubmission.results && selectedSubmission.results.length > 0 && (
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-semibold mb-2">Test Case Results</h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -134,11 +174,12 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
                               </span>
                             </div>
                           </div>
+                          
                           {!result.passed && (
                             <div className="text-sm space-y-1">
                               <div>Expected: <span className="font-mono text-green-600">{result.expectedOutput}</span></div>
                               <div>Got: <span className="font-mono text-red-600">{result.actualOutput}</span></div>
-                              {result.status && result.status !== "Unknown" && (
+                              {result.status && result.status !== 'Unknown' && (
                                 <div>Status: <span className="text-yellow-600">{result.status}</span></div>
                               )}
                             </div>
@@ -150,7 +191,9 @@ const SubmissionHistory = ({ questionId, isOpen, onClose }) => {
                 )}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">Select a submission to view details</div>
+              <div className="text-center py-8 text-gray-500">
+                Select a submission to view details
+              </div>
             )}
           </div>
         </div>

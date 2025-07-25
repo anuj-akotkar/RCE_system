@@ -54,7 +54,7 @@ export const submitCode = async ({ language, code, questionId }) => {
   return result;
 };
 
-// Get all submissions for a question
+// Get submissions by question
 export const getSubmissionsByQuestion = async (questionId) => {
   const toastId = toast.loading("Loading submissions...");
   let result = null;
@@ -77,7 +77,7 @@ export const getSubmissionsByQuestion = async (questionId) => {
   return result;
 };
 
-// Get a single submission by ID
+// Get submission by ID
 export const getSubmissionById = async (submissionId) => {
   const toastId = toast.loading("Loading submission details...");
   let result = null;

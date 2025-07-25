@@ -19,6 +19,7 @@ const TakeContest = () => {
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
 
+  // Fetch contest questions from API
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -40,15 +41,16 @@ const TakeContest = () => {
     if (token) fetchQuestions();
   }, [contestId, token]);
 
+  // Handler for running code
   const handleRun = async (code) => {
     if (!selected) {
       console.error("No question selected");
       return;
     }
-
+    
     setLoading(true);
     setOutput(null);
-
+    
     try {
       const result = await runCode({
         code,
@@ -58,38 +60,38 @@ const TakeContest = () => {
       setOutput(result);
     } catch (err) {
       console.error("Run code error:", err);
-      setOutput({
-        success: false,
-        error: "Run failed",
-        message: err.message || "Failed to execute code",
+      setOutput({ 
+        success: false, 
+        error: "Run failed", 
+        message: err.message || "Failed to execute code"
       });
     }
     setLoading(false);
   };
 
+  // Handler for submitting code
   const handleSubmit = async (code) => {
     if (!selected) {
       console.error("No question selected");
       return;
     }
-
+    
     setLoading(true);
     setOutput(null);
-
+    
     try {
       const result = await submitCode({
         code,
         language,
         questionId: selected._id,
-        contestId,
       });
       setOutput(result);
     } catch (err) {
       console.error("Submit code error:", err);
-      setOutput({
-        success: false,
-        error: "Submit failed",
-        message: err.message || "Failed to submit code",
+      setOutput({ 
+        success: false, 
+        error: "Submit failed", 
+        message: err.message || "Failed to submit code"
       });
     }
     setLoading(false);
@@ -97,6 +99,7 @@ const TakeContest = () => {
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
+      {/* Left: Question Panel */}
       <div className="w-1/2 border-r bg-gray-50 p-4 overflow-y-auto">
         <QuestionPanel
           questions={questions}
@@ -104,6 +107,7 @@ const TakeContest = () => {
           onSelect={setSelected}
         />
       </div>
+      {/* Right: Code Editor and Output */}
       <div className="w-1/2 flex flex-col bg-gray-100 p-4">
         <CodeEditor
           language={language}

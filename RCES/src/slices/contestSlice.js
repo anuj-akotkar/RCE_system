@@ -9,9 +9,11 @@ const initialState = {
   title: "",
   description: "",
   duration: "",
+  startTime: "",
+  endTime: "",
   thumbnail: "",
   questions: [],
-  editContest: false, // <-- Add this line
+  editContest: false,
   // Add more fields as needed (e.g., startDate, endDate, etc.)
 };
 
@@ -43,6 +45,12 @@ const contestSlice = createSlice({
     setDuration(state, action) {
       state.duration = action.payload;
     },
+    setStartTime(state, action) {
+      state.startTime = action.payload;
+    },
+    setEndTime(state, action) {
+      state.endTime = action.payload;
+    },
     setQuestions(state, action) {
       state.questions = action.payload;
     },
@@ -58,11 +66,23 @@ const contestSlice = createSlice({
     deleteQuestion(state, action) {
       state.questions.splice(action.payload, 1);
     },
-    setEditContest(state, action) { // <-- Add this reducer
+    setEditContest(state, action) {
       state.editContest = action.payload;
     },
     resetContestState(state) {
       Object.assign(state, initialState);
+    },
+    // Load contest data for editing
+    loadContestForEdit(state, action) {
+      const contest = action.payload;
+      state.title = contest.title || "";
+      state.description = contest.description || "";
+      state.duration = contest.timeLimit || "";
+      state.startTime = contest.startTime ? new Date(contest.startTime).toISOString().slice(0, 16) : "";
+      state.endTime = contest.endTime ? new Date(contest.endTime).toISOString().slice(0, 16) : "";
+      state.thumbnail = contest.thumbnail || "";
+      state.questions = contest.questions || [];
+      state.editContest = true;
     },
   },
 });
@@ -75,13 +95,16 @@ export const {
   setTitle,
   setDescription,
   setDuration,
+  setStartTime,
+  setEndTime,
   setthumbnail,
   setQuestions,
   addQuestion,
   updateQuestion,
   deleteQuestion,
-  setEditContest, // <-- Export it here
+  setEditContest,
   resetContestState,
+  loadContestForEdit,
 } = contestSlice.actions;
 
 export default contestSlice.reducer;
