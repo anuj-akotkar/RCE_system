@@ -7,6 +7,8 @@ const cors = require("cors");
 const { cloudinaryconnect } = require("./Config/cloudinary");
 const fileUpload = require("express-fileupload");
 const dotenv = require("dotenv");
+const path = require("path");
+const fs = require("fs");
 
 // Setting up port number
 const PORT = process.env.PORT || 4000;
@@ -22,7 +24,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
 	cors({
-		origin: "*",
+		origin: "http://localhost:3000",
 		credentials: true,
 	})
 );
@@ -39,7 +41,7 @@ cloudinaryconnect();
 // Setting up routes
 const contactusroutesRoutes = require('./Routes/Contactusroutes');
 const contestRoutes = require('./Routes/Contestroutes');
-const questionRoutes = require('./Routes/questionRoutes');
+const questionRoutes = require('./Routes/questionroutes');
 const profileRoutes = require('./Routes/Profileroutes');
 const userRoutes = require('./Routes/Userroutes');
 const submissionRoutes = require('./Routes/submissionroutes');
@@ -52,8 +54,34 @@ app.use('/api/v1/questions', questionRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/contactus', contactusroutesRoutes);
-//app.use("/api/v1/code", codeRoutes);
-// ...existing code...
+
+// Add a route to serve boilerplate files directly (useful for frontend)
+app.get('/api/contests/:contestName/problems/:problemName/boilerplate/:language', async (req, res) => {
+    try {
+        const { contestName, problemName, language } = req.params;
+        const extension = language === 'cpp' ? 'cpp' : language === 'java' ? 'java' : 'py';
+        const filePath = path.join(
+            process.cwd(),
+            'Contests', // Use capital C for consistency
+            contestName,
+            'problems',
+            problemName,
+            'boilerplate',
+            `function.${extension}`
+        );
+        const code = await fs.readFile(filePath, 'utf8');
+        res.json({
+            success: true,
+            language,
+            code
+        });
+    } catch (error) {
+        res.status(404).json({
+            success: false,
+            message: 'Boilerplate file not found'
+        });
+    }
+});
 
 // Testing the server
 app.get("/", (req, res) => {

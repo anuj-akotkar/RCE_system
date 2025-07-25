@@ -1,43 +1,102 @@
-const Question = require("../Models/Questions");
+const ContestFileManager = require("../Services/ContestFileManager");
+const BoilerplateGeneratorService = require("../boilerplate-generator/dist/index"); // Use dist version
+const TestCase = require("../Models/Testcases");
 const Contest = require("../Models/Contest");
+const Question = require("../Models/Questions");
 const mongoose = require("mongoose");
+const fs = require('fs').promises;
+const path = require('path');
 
-// ✅ Create Question & Add to Contest
+// Create a new question, generate boilerplate and save files
 exports.createQuestion = async (req, res) => {
   try {
-    const { contestId, title, description, inputFormat, outputFormat, constraints, sampleTestCases, difficulty } = req.body;
+    const { 
+      contestId, title, description, constraints, sampleInputs, sampleOutputs, 
+      functionName, inputFields, inputTypes, outputFields, outputTypes, testCases, difficulty 
+    } = req.body;
 
-    // Validate contestId
     if (!mongoose.Types.ObjectId.isValid(contestId)) {
       return res.status(400).json({ success: false, message: "Invalid contest ID." });
     }
-
-    // Validate required fields
-    if (!title || !description || !inputFormat || !outputFormat || !constraints || !sampleTestCases || !difficulty) {
-      return res.status(400).json({ success: false, message: "All fields are required." });
+    if (!title || !description || !functionName || !inputFields || !inputTypes || !outputFields || !outputTypes || !testCases) {
+      return res.status(400).json({ success: false, message: "All required fields must be provided." });
     }
 
-    // Create a new question
+    // Create question in database first
     const question = await Question.create({
       contest: contestId,
       title,
       description,
-      inputFormat,
-      outputFormat,
       constraints,
-      sampleTestCases,
-      difficulty,
+      sampleInputs,
+      sampleOutputs,
+      functionName,
+      inputFields,
+      inputTypes,
+      outputFields,
+      outputTypes,
+      difficulty: difficulty || 'medium',
     });
 
-    // Add the question to the contest
+    // Add question to contest
     await Contest.findByIdAndUpdate(contestId, { $push: { questions: question._id } });
+
+    // Get contest details
+    const contestDoc = await Contest.findById(contestId);
+    if (!contestDoc) throw new Error('Contest not found');
+
+    const contestName = contestDoc.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+    const problemName = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+
+    // Generate structure.md content
+    const structureMd = `Problem Name: "${title}"
+Function Name: ${functionName}
+Input Structure:
+${inputFields.map((field, index) => `Input Field: ${inputTypes[index]} ${field}`).join('\n')}
+Output Structure:
+${outputFields.map((field, index) => `Output Field: ${outputTypes[index]} ${field}`).join('\n')}`;
+
+    // Format test cases for boilerplate generator
+    const formattedTestCases = testCases.map(tc => ({
+      input: tc.input.toString(),
+      output: tc.expectedOutput.toString()
+    }));
+
+    // Generate boilerplate using your service
+    const boilerplateService = new BoilerplateGeneratorService();
+    const generationResult = await boilerplateService.generateBoilerplateForProblem(
+      contestName,
+      problemName,
+      structureMd,
+      formattedTestCases
+    );
+
+    // Create test cases in database
+    const testCaseIds = [];
+    for (const tc of testCases) {
+      const testCaseDoc = await TestCase.create({
+        question: question._id,
+        input: tc.input,
+        expectedOutput: tc.expectedOutput,
+        isPublic: tc.isPublic || false,
+      });
+      testCaseIds.push(testCaseDoc._id);
+    }
+    question.testCases = testCaseIds;
+    await question.save();
 
     res.status(201).json({
       success: true,
-      message: "Question created successfully and added to the contest.",
-      question,
+      message: "Question created successfully with boilerplate files.",
+      question: {
+        ...question.toObject(),
+        boilerplateGenerated: true,
+        folderPath: generationResult.contestPath
+      },
     });
+
   } catch (err) {
+    console.error('❌ Error creating question:', err);
     res.status(500).json({
       success: false,
       message: "An error occurred while creating the question.",
@@ -46,18 +105,80 @@ exports.createQuestion = async (req, res) => {
   }
 };
 
-// ✅ Update Question
+// Get boilerplate code for a question
+exports.getQuestionBoilerplate = async (req, res) => {
+  try {
+    const { questionId, language } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(questionId)) {
+      return res.status(400).json({ success: false, message: "Invalid question ID." });
+    }
+
+    const question = await Question.findById(questionId).populate('contest');
+    if (!question) {
+      return res.status(404).json({ success: false, message: "Question not found." });
+    }
+
+    const contestName = question.contest.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+    const problemName = question.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+    const extension = language === 'cpp' ? 'cpp' : language === 'java' ? 'java' : 'py';
+
+    // Correct path: Contests/<contestName>/problems/<problemName>/boilerplate/function.<ext>
+    const boilerplatePath = path.join(
+      process.cwd(),
+      'Contests',
+      contestName,
+      'problems',
+      problemName,
+      'boilerplate',
+      `function.${extension}`
+    );
+
+    try {
+      const boilerplateCode = await fs.readFile(boilerplatePath, 'utf8');
+      res.json({
+        success: true,
+        question: {
+          id: question._id,
+          title: question.title,
+          description: question.description,
+          constraints: question.constraints,
+          sampleInputs: question.sampleInputs,
+          sampleOutputs: question.sampleOutputs
+        },
+        boilerplate: {
+          language,
+          code: boilerplateCode
+        }
+      });
+    } catch (fileError) {
+      console.error('Error reading boilerplate file:', fileError);
+      res.status(404).json({
+        success: false,
+        message: "Boilerplate file not found for this language."
+      });
+    }
+
+  } catch (err) {
+    console.error('Error getting question boilerplate:', err);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching the question boilerplate.",
+      error: err.message,
+    });
+  }
+};
+
+// Update a question
 exports.updateQuestion = async (req, res) => {
   try {
     const { questionId } = req.params;
     const updates = req.body;
 
-    // Validate questionId
     if (!mongoose.Types.ObjectId.isValid(questionId)) {
       return res.status(400).json({ success: false, message: "Invalid question ID." });
     }
 
-    // Update the question
     const updatedQuestion = await Question.findByIdAndUpdate(questionId, updates, { new: true });
 
     if (!updatedQuestion) {
@@ -78,24 +199,21 @@ exports.updateQuestion = async (req, res) => {
   }
 };
 
-// ✅ Delete Question
+// Delete a question
 exports.deleteQuestion = async (req, res) => {
   try {
     const { questionId } = req.params;
 
-    // Validate questionId
     if (!mongoose.Types.ObjectId.isValid(questionId)) {
       return res.status(400).json({ success: false, message: "Invalid question ID." });
     }
 
-    // Find and delete the question
     const deletedQuestion = await Question.findByIdAndDelete(questionId);
 
     if (!deletedQuestion) {
       return res.status(404).json({ success: false, message: "Question not found." });
     }
 
-    // Remove the question from the contest
     await Contest.findByIdAndUpdate(deletedQuestion.contest, { $pull: { questions: questionId } });
 
     res.status(200).json({
@@ -111,7 +229,7 @@ exports.deleteQuestion = async (req, res) => {
   }
 };
 
-// ✅ Get all questions (optionally for a contest)
+// Get all questions (optionally for a contest)
 exports.getAllQuestions = async (req, res) => {
   try {
     const { contestId } = req.query;
@@ -134,7 +252,7 @@ exports.getAllQuestions = async (req, res) => {
   }
 };
 
-// ✅ Get a single question by ID
+// Get a single question by ID
 exports.getQuestionById = async (req, res) => {
   try {
     const { questionId } = req.params;

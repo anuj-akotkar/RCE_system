@@ -53,6 +53,11 @@ const questionSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    functionName: { type: String, trim: true },
+    inputFields: { type: [String], default: [] },
+    inputTypes: { type: [String], default: [] },
+    outputFields: { type: [String], default: [] },
+    outputTypes: { type: [String], default: [] },
   },
   { timestamps: true }
 );

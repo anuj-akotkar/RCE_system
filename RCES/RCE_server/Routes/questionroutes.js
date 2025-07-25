@@ -5,7 +5,8 @@ const {
   updateQuestion, 
   deleteQuestion, 
   getAllQuestions, 
-  getQuestionById 
+  getQuestionById ,
+  getQuestionBoilerplate
 } = require("../Controllers/Question");
 const { auth, isInstructor } = require("../Middlewares/auth");
 
@@ -23,5 +24,7 @@ router.get("/", getAllQuestions);
 
 // Get a single question by ID
 router.get("/:questionId", getQuestionById);
+
+router.get('/:questionId/boilerplate/:language', auth, getQuestionBoilerplate);
 
 module.exports = router;
