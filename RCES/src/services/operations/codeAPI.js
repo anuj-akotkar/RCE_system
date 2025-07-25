@@ -3,19 +3,20 @@ import { apiConnector } from "../apiconnector";
 import { codeEndpoints } from "../apis";
 
 // Run code (sample test cases)
-export const runCode = async ({ language, code, input }) => {
+export const runCode = async ({ language, code, questionId }) => {
   const toastId = toast.loading("Running code...");
   let result = null;
   try {
     const response = await apiConnector(
       "POST",
       codeEndpoints.RUN_CODE_API,
-      { language, code, input }
+      { language, code, questionId }
     );
     if (!response?.data?.success) {
       throw new Error("Could not run code.");
     }
     result = response.data;
+    toast.success("Code executed successfully!");
   } catch (error) {
     console.log("RUN_CODE_API ERROR:", error);
     toast.error(error.message || "Failed to run code");
@@ -39,9 +40,60 @@ export const submitCode = async ({ language, code, questionId }) => {
       throw new Error("Could not submit code.");
     }
     result = response.data;
+    if (result.submission?.status === 'Accepted') {
+      toast.success("Code submitted successfully! All test cases passed!");
+    } else {
+      toast.success("Code submitted successfully!");
+    }
   } catch (error) {
     console.log("SUBMIT_CODE_API ERROR:", error);
     toast.error(error.message || "Failed to submit code");
+    result = error.response?.data;
+  }
+  toast.dismiss(toastId);
+  return result;
+};
+
+// Get submissions by question
+export const getSubmissionsByQuestion = async (questionId) => {
+  const toastId = toast.loading("Loading submissions...");
+  let result = null;
+  try {
+    const response = await apiConnector(
+      "GET",
+      `${codeEndpoints.SUBMIT_CODE_API.replace('/submit', '')}/question/${questionId}`
+    );
+    if (!response?.data?.success) {
+      throw new Error("Could not fetch submissions.");
+    }
+    result = response.data;
+    toast.success("Submissions loaded!");
+  } catch (error) {
+    console.log("GET_SUBMISSIONS_API ERROR:", error);
+    toast.error(error.message || "Failed to fetch submissions");
+    result = error.response?.data;
+  }
+  toast.dismiss(toastId);
+  return result;
+};
+
+// Get submission by ID
+export const getSubmissionById = async (submissionId) => {
+  const toastId = toast.loading("Loading submission details...");
+  let result = null;
+  try {
+    const response = await apiConnector(
+      "GET",
+      `${codeEndpoints.SUBMIT_CODE_API.replace('/submit', '')}/${submissionId}`
+    );
+    if (!response?.data?.success) {
+      throw new Error("Could not fetch submission details.");
+    }
+    result = response.data;
+    toast.success("Submission details loaded!");
+  } catch (error) {
+    console.log("GET_SUBMISSION_API ERROR:", error);
+    toast.error(error.message || "Failed to fetch submission details");
     result = error.response?.data;
   }
   toast.dismiss(toastId);
