@@ -5,74 +5,211 @@ import {
   setDescription,
   setDuration,
   setthumbnail,
+  setStartTime,
+  setEndTime,
 } from "../../../../slices/contestSlice";
 import Upload from "./Upload.jsx";
 
 const ContestInformationForm = ({ onNext }) => {
   const dispatch = useDispatch();
-  const { title, description, duration,thumbnail } = useSelector((state) => state.contest);
+  const { 
+    title, 
+    description, 
+    duration, 
+    thumbnail, 
+    startTime, 
+    endTime 
+  } = useSelector((state) => state.contest);
+
+  // Calculate end time based on start time and duration
+  const handleStartTimeChange = (value) => {
+    dispatch(setStartTime(value));
+    if (duration && value) {
+      const startDate = new Date(value);
+      const endDate = new Date(startDate.getTime() + duration * 60000);
+      dispatch(setEndTime(endDate.toISOString().slice(0, 16)));
+    }
+  };
+
+  const handleDurationChange = (value) => {
+    dispatch(setDuration(Number(value)));
+    if (startTime && value) {
+      const startDate = new Date(startTime);
+      const endDate = new Date(startDate.getTime() + value * 60000);
+      dispatch(setEndTime(endDate.toISOString().slice(0, 16)));
+    }
+  };
 
   const isValid = title && description && duration > 0 && thumbnail;
 
+  // Get current date-time for minimum start time
+  const now = new Date();
+  const minDateTime = now.toISOString().slice(0, 16);
+
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block font-medium mb-1">Contest Title</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => dispatch(setTitle(e.target.value))}
-          className="w-full p-2 border rounded"
-          placeholder="Enter contest title"
-        />
-        {!title && <span className="text-xs text-red-500">Title is required</span>}
-      </div>
+    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 mt-6">
+      <h2 className="text-2xl font-bold mb-6 text-center">Contest Information</h2>
+      
+      <div className="space-y-6">
+        {/* Basic Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
+            <label className="block font-semibold mb-2 text-gray-700">Contest Title *</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => dispatch(setTitle(e.target.value))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter a descriptive contest title"
+            />
+            {!title && <span className="text-xs text-red-500 mt-1">Title is required</span>}
+          </div>
 
-      <div>
-        <label className="block font-medium mb-1">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => dispatch(setDescription(e.target.value))}
-          className="w-full p-2 border rounded"
-          rows="4"
-          placeholder="Enter a short description of the contest"
-        />
-        {!description && <span className="text-xs text-red-500">Description is required</span>}
-      </div>
+          <div className="md:col-span-2">
+            <label className="block font-semibold mb-2 text-gray-700">Description *</label>
+            <textarea
+              value={description}
+              onChange={(e) => dispatch(setDescription(e.target.value))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows="4"
+              placeholder="Provide a detailed description of the contest, including objectives, rules, and any special instructions"
+            />
+            {!description && <span className="text-xs text-red-500 mt-1">Description is required</span>}
+          </div>
+        </div>
 
-      <div>
-        <label className="block font-medium mb-1">Duration (in minutes)</label>
-        <input
-          type="number"
-          value={duration}
-          onChange={(e) => dispatch(setDuration(Number(e.target.value)))}
-          className="w-full p-2 border rounded"
-          placeholder="Enter contest duration"
-        />
-        {(!duration || duration <= 0) && (
-          <span className="text-xs text-red-500">Duration must be positive</span>
+        {/* Timing Information */}
+        <div className="bg-blue-50 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4 text-blue-800">Contest Schedule</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block font-semibold mb-2 text-gray-700">Start Time</label>
+              <input
+                type="datetime-local"
+                value={startTime || minDateTime}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
+                min={minDateTime}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <span className="text-xs text-gray-500 mt-1">Leave blank to start immediately</span>
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-2 text-gray-700">Duration (minutes) *</label>
+              <input
+                type="number"
+                value={duration}
+                onChange={(e) => handleDurationChange(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g., 120 for 2 hours"
+                min="1"
+              />
+              {(!duration || duration <= 0) && (
+                <span className="text-xs text-red-500 mt-1">Duration must be positive</span>
+              )}
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-2 text-gray-700">End Time</label>
+              <input
+                type="datetime-local"
+                value={endTime || ''}
+                onChange={(e) => dispatch(setEndTime(e.target.value))}
+                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
+                readOnly
+              />
+              <span className="text-xs text-gray-500 mt-1">Automatically calculated</span>
+            </div>
+          </div>
+
+          {duration > 0 && (
+            <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+              <div className="text-sm text-blue-800">
+                <strong>Contest Duration:</strong> {Math.floor(duration / 60)}h {duration % 60}m
+                {startTime && (
+                  <>
+                    <br />
+                    <strong>Starts:</strong> {new Date(startTime).toLocaleString()}
+                    <br />
+                    <strong>Ends:</strong> {endTime ? new Date(endTime).toLocaleString() : 'Not set'}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Contest Media */}
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Contest Media</h3>
+          
+          <div>
+            <label className="block font-semibold mb-2 text-gray-700">Contest Thumbnail *</label>
+            <Upload
+              name="thumbnail"
+              label="Upload Contest Thumbnail"
+              setValue={(_, value) => dispatch(setthumbnail(value))}
+              errors={{ thumbnail: !thumbnail }}
+              viewData={typeof thumbnail === "string" ? thumbnail : null}
+            />
+            {!thumbnail && <span className="text-xs text-red-500 mt-1">Thumbnail is required</span>}
+            <div className="text-xs text-gray-500 mt-2">
+              Recommended: 1200x630 pixels, max 2MB, JPG/PNG format
+            </div>
+          </div>
+        </div>
+
+        {/* Contest Guidelines */}
+        <div className="bg-green-50 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold mb-3 text-green-800">Contest Guidelines</h3>
+          <div className="text-sm text-green-700 space-y-2">
+            <div className="flex items-start gap-2">
+              <span className="text-green-600 mt-1">•</span>
+              <span>Ensure all questions have clear problem statements and test cases</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-green-600 mt-1">•</span>
+              <span>Set appropriate difficulty levels and time limits for each question</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-green-600 mt-1">•</span>
+              <span>Provide meaningful sample inputs and outputs for student understanding</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-green-600 mt-1">•</span>
+              <span>Contest duration should be sufficient for the number and complexity of questions</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Validation Summary */}
+        {!isValid && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 className="text-red-800 font-semibold mb-2">Please complete the following:</h4>
+            <ul className="text-red-700 text-sm space-y-1">
+              {!title && <li>• Contest title is required</li>}
+              {!description && <li>• Contest description is required</li>}
+              {(!duration || duration <= 0) && <li>• Valid contest duration is required</li>}
+              {!thumbnail && <li>• Contest thumbnail is required</li>}
+            </ul>
+          </div>
         )}
+
+        <div className="flex justify-end pt-6 border-t">
+          <button
+            onClick={onNext}
+            disabled={!isValid}
+            className={`px-8 py-3 rounded-lg font-semibold transition-colors ${
+              isValid 
+                ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg" 
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
+          >
+            Next: Add Questions
+          </button>
+        </div>
       </div>
-       
-       <div>
-        <label className="block font-medium mb-1">Thumbnail</label>
-        <Upload
-          name="thumbnail"
-          label="Contest Thumbnail"
-          setValue={(_, value) => dispatch(setthumbnail(value))}
-          errors={{ thumbnail: !thumbnail }}
-          viewData={typeof thumbnail === "string" ? thumbnail : null}
-        />
-        {!thumbnail && <span className="text-xs text-red-500">Thumbnail is required</span>}
-       </div>
-       
-      <button
-        onClick={onNext}
-        disabled={!isValid}
-        className={`mt-4 px-4 py-2 rounded ${isValid ? "bg-green-500 text-white" : "bg-gray-300 cursor-not-allowed"}`}
-      >
-        Next
-      </button>
     </div>
   );
 };
