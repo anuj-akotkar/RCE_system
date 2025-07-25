@@ -48,8 +48,10 @@ export const codeEndpoints = {
 
 // SUBMISSION ENDPOINTS
 export const submissionEndpoints = {
-  SUBMIT_CODE_API: BASE_URL + "/submissions",
-  GET_SUBMISSIONS_API: BASE_URL + "/submissions",
+  // Create and fetch submissions using new /code routes
+  SUBMIT_CODE_API: BASE_URL + "/code/submit", // Replaces previous /submissions
+  GET_SUBMISSIONS_API: BASE_URL + "/code/question", // Append /:questionId when calling
+  GET_SUBMISSION_BY_ID_API: BASE_URL + "/code", // Append /:submissionId when calling
 };
 
 // FEEDBACK ENDPOINTS

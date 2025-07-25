@@ -3,14 +3,14 @@ import { apiConnector } from "../apiconnector";
 import { codeEndpoints } from "../apis";
 
 // Run code (sample test cases)
-export const runCode = async ({ language, code, input }) => {
+export const runCode = async ({ language, code, questionId }) => {
   const toastId = toast.loading("Running code...");
   let result = null;
   try {
     const response = await apiConnector(
       "POST",
       codeEndpoints.RUN_CODE_API,
-      { language, code, input }
+      { language, code, questionId }
     );
     if (!response?.data?.success) {
       throw new Error("Could not run code.");
