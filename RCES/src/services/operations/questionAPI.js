@@ -1,6 +1,6 @@
 import { toast } from "react-hot-toast";
 import { apiConnector } from "../apiconnector";
-import { profileEndpoints } from "../apis";
+import { profileEndpoints, questionEndpoints } from "../apis";
 
 // Destructure endpoints for clarity
 const {
@@ -74,6 +74,29 @@ export const fetchUserContests = async (token) => {
   } catch (error) {
     console.log("GET_USER_CONTESTS_API ERROR:", error);
     toast.error(error.message || "Could not fetch contests");
+  }
+  toast.dismiss(toastId);
+  return result;
+};
+
+// Fetch boilerplate code for a question
+export const fetchQuestionBoilerplate = async (questionId, language, token) => {
+  const toastId = toast.loading("Loading boilerplate code...");
+  let result = null;
+  try {
+    const response = await apiConnector(
+      "GET",
+      `${questionEndpoints.GET_QUESTION_BOILERPLATE_API}/${questionId}/boilerplate/${language}`,
+      null,
+      { Authorization: `Bearer ${token}` }
+    );
+    if (!response?.data?.success) {
+      throw new Error(response.data.message || "Could not fetch boilerplate code");
+    }
+    result = response.data.boilerplate;
+  } catch (error) {
+    console.log("GET_QUESTION_BOILERPLATE_API ERROR:", error);
+    toast.error(error.message || "Could not fetch boilerplate code");
   }
   toast.dismiss(toastId);
   return result;

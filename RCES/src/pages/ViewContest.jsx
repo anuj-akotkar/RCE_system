@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import QuestionPanel from "../../components/QuestionPanel";
 import CodeEditor from "../../components/CodeEditor";
 import OutputPanel from "../../components/OutputPanel";
@@ -7,6 +8,7 @@ import axios from "axios";
 
 const ViewContestPage = () => {
   const { contestId } = useParams();
+  const { token } = useSelector((state) => state.auth);
   const [questions, setQuestions] = useState([]);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [language, setLanguage] = useState("cpp");
@@ -141,6 +143,8 @@ const ViewContestPage = () => {
           onSubmit={handleSubmit}
           loading={loading}
           disabled={contestEnded}
+          questionId={selectedQuestion?._id}
+          token={token}
         />
         <OutputPanel output={output} />
       </div>
