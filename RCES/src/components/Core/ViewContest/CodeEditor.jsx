@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
+import { fetchQuestionBoilerplate } from "../../../services/operations/questionAPI";
 
-const CodeEditor = ({ language, setLanguage, onRun, onSubmit, loading }) => {
+const CodeEditor = ({ language, setLanguage, onRun, onSubmit, loading, questionId, token }) => {
   const defaultCodeTemplates = {
     cpp: `#include<iostream>
 using namespace std;
@@ -22,11 +23,37 @@ public class Main {
   };
 
   const [code, setCode] = useState(defaultCodeTemplates[language]);
+  const [isLoadingBoilerplate, setIsLoadingBoilerplate] = useState(false);
 
-  // Update code whenever language changes
+  // Fetch boilerplate code when questionId or language changes
   useEffect(() => {
-    setCode(defaultCodeTemplates[language]);
-  }, [language]);
+    const fetchBoilerplate = async () => {
+      if (!questionId || !token) {
+        // Fallback to default templates if no questionId or token
+        setCode(defaultCodeTemplates[language]);
+        return;
+      }
+
+      setIsLoadingBoilerplate(true);
+      try {
+        const boilerplateData = await fetchQuestionBoilerplate(questionId, language, token);
+        if (boilerplateData && boilerplateData.code) {
+          setCode(boilerplateData.code);
+        } else {
+          // Fallback to default template if no boilerplate found
+          setCode(defaultCodeTemplates[language]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch boilerplate:", error);
+        // Fallback to default template on error
+        setCode(defaultCodeTemplates[language]);
+      } finally {
+        setIsLoadingBoilerplate(false);
+      }
+    };
+
+    fetchBoilerplate();
+  }, [questionId, language, token]);
 
   const mapLang = {
     cpp: "cpp",
@@ -41,11 +68,15 @@ public class Main {
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
           className="border p-1 rounded"
+          disabled={isLoadingBoilerplate}
         >
           <option value="cpp">C++</option>
           <option value="python">Python</option>
           <option value="java">Java</option>
         </select>
+        {isLoadingBoilerplate && (
+          <span className="text-sm text-gray-500">Loading boilerplate...</span>
+        )}
       </div>
 
       <Editor
@@ -55,20 +86,21 @@ public class Main {
         value={code}
         onChange={(value) => setCode(value)}
         className="border rounded"
+        loading={isLoadingBoilerplate ? "Loading boilerplate..." : undefined}
       />
 
       <div className="flex gap-3 mt-4">
         <button
           onClick={() => onRun(code)}
           className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-          disabled={loading}
+          disabled={loading || isLoadingBoilerplate}
         >
           Run
         </button>
         <button
           onClick={() => onSubmit(code)}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-          disabled={loading}
+          disabled={loading || isLoadingBoilerplate}
         >
           Submit
         </button>
