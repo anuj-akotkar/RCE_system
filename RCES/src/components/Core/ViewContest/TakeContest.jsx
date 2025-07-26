@@ -115,6 +115,8 @@ const TakeContest = () => {
           onRun={handleRun}
           onSubmit={handleSubmit}
           loading={loading}
+          questionId={selected?._id}
+          token={token}
         />
         <div className="mt-4 flex-1">
           <OutputPanel output={output} />

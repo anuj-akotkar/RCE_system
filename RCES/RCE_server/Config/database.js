@@ -4,7 +4,7 @@ const { MONGODB_URL } = process.env;
 
 exports.connect = () => {
   mongoose
-    .connect(MONGODB_URL, {
+    .connect(MONGODB_URL || "mongodb://localhost:27017/rce_server", {
       useNewUrlParser: true, // Corrected option name
       useUnifiedTopology: true,
     })
@@ -12,8 +12,8 @@ exports.connect = () => {
       console.log("DB connection successful");
     })
     .catch((err) => {
-      console.log("DB Connection Failed");
+      console.log("DB Connection Failed - continuing without database");
       console.log(err);
-      process.exit(1);
+      // Don't exit the process, just log the error
     });
 };
