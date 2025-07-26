@@ -18,7 +18,7 @@ const TakeContest = () => {
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
-  console.log("TakeContest props:", { contestId, token, contestName });
+  //console.log("TakeContest props:", { contestId, token, contestName });
   // Fetch contest questions from API
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -44,6 +44,7 @@ const TakeContest = () => {
 
   // Handler for running code
   const handleRun = async (code) => {
+    console.log("Running code with token form takecontest:", token);
     if (!selected) {
       console.error("No question selected");
       return;
@@ -57,7 +58,9 @@ const TakeContest = () => {
         code,
         language,
         questionId: selected._id,
+        token: token,
       });
+      console.log("Run code result form takecontest:", result);
       setOutput(result);
     } catch (err) {
       console.error("Run code error:", err);

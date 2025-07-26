@@ -88,7 +88,7 @@ export const fetchQuestionBoilerplate = async (questionId, language, token, cont
     // Sanitize names: replace spaces and non-alphanumeric chars with "-"
   const sanitizedContestName = contestName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
   const sanitizedQuestionName = questionName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-  console.log("Fetching boilerplate for:", { questionId, language, token, contestId, contestName, questionName });
+  //console.log("Fetching boilerplate for:", { questionId, language, token, contestId, contestName, questionName });
   try {
     const response = await apiConnector(
       "GET",
@@ -96,10 +96,11 @@ export const fetchQuestionBoilerplate = async (questionId, language, token, cont
       null,
       { Authorization: `Bearer ${token}` }
     );
+    console.log("Boilerplate response:", response.data);    
     if (!response?.data?.success) {
       throw new Error(response.data.message || "Could not fetch boilerplate code");
     }
-    result = response.data.boilerplate;
+    result = response.data.code;
   } catch (error) {
     console.log("GET_QUESTION_BOILERPLATE_API ERROR:", error);
     toast.error(error.message || "Could not fetch boilerplate code");

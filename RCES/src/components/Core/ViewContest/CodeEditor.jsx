@@ -3,7 +3,7 @@ import Editor from "@monaco-editor/react";
 import { fetchQuestionBoilerplate } from "../../../services/operations/questionAPI";
 
 const CodeEditor = ({ language, setLanguage, onRun, onSubmit, loading, questionName, questionId, contestId, contestName, token }) => {
-  console.log("CodeEditor props:", { language, questionId, questionName, contestId, contestName, token });
+  //console.log("CodeEditor props:", { language, questionId, questionName, contestId, contestName, token });
   const defaultCodeTemplates = {
     cpp: `#include<iostream>
 using namespace std;
@@ -38,8 +38,9 @@ public class Main {
       setIsLoadingBoilerplate(true);
       try {
         const boilerplateData = await fetchQuestionBoilerplate(questionId, language, token, contestId, contestName,questionName);
-        if (boilerplateData && boilerplateData.code) {
-          setCode(boilerplateData.code);
+        console.log("Boilerplate data:", boilerplateData);
+        if (boilerplateData) {
+          setCode(boilerplateData);
         } else {
           // Fallback to default template if no boilerplate found
           setCode(defaultCodeTemplates[language]);

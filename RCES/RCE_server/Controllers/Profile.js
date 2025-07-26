@@ -36,13 +36,24 @@ exports.updateProfile = async (req, res) => {
 // Get all user details
 exports.getAllUserDetails = async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      console.error("getAllUserDetails: No user info in request", { user: req.user });
+      return res.status(401).json({ success: false, message: "Unauthorized: No user info in request." });
+    }
+    
     const userId = req.user.id;
+    console.log("getAllUserDetails: Fetching user with ID:", userId);
+    
     const user = await User.findById(userId).populate("additionalDetails");
     if (!user) {
+      console.error("getAllUserDetails: User not found for ID:", userId);
       return res.status(404).json({ success: false, message: "User not found." });
     }
+    
+    console.log("getAllUserDetails: Successfully fetched user:", user._id);
     res.status(200).json({ success: true, user });
   } catch (err) {
+    console.error("getAllUserDetails: Error occurred:", err);
     res.status(500).json({ success: false, message: "An error occurred while fetching user details.", error: err.message });
   }
 };

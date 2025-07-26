@@ -69,13 +69,15 @@ app.get('/api/v1/Contests/:contestName/problems/:problemName/boilerplate/:langua
             'boilerplate',
             `function.${extension}`
         );
-        const code = await fs.readFile(filePath, 'utf8');
+        console.log("Boilerplate file path:", filePath);
+        const code = await fs.promises.readFile(filePath, 'utf8');
         res.json({
             success: true,
             language,
             code
         });
     } catch (error) {
+        console.error("Error fetching boilerplate:", error);
         res.status(404).json({
             success: false,
             message: 'Boilerplate file not found'

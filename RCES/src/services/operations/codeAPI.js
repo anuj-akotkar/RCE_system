@@ -3,15 +3,20 @@ import { apiConnector } from "../apiconnector";
 import { codeEndpoints } from "../apis";
 
 // Run code (sample test cases)
-export const runCode = async ({ language, code, questionId }) => {
+export const runCode = async ({ language, code, questionId ,token}) => {
+  console.log("Running code with language form codeapi:", language);
+  console.log("Running code with code form codeapi:", code);
   const toastId = toast.loading("Running code...");
   let result = null;
   try {
+    console.log("Token being sent:", token);
     const response = await apiConnector(
       "POST",
       codeEndpoints.RUN_CODE_API,
-      { language, code, questionId }
+      { language, code, questionId },
+      { Authorization: `Bearer ${token}` }
     );
+    console.log("Run code response form codeapi:", response);
     if (!response?.data?.success) {
       throw new Error("Could not run code.");
     }
