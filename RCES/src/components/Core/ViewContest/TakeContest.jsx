@@ -17,6 +17,7 @@ const TakeContest = () => {
   const [language, setLanguage] = useState("cpp");
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState("");
   const { token } = useSelector((state) => state.auth);
   //console.log("TakeContest props:", { contestId, token, contestName });
   // Fetch contest questions from API
@@ -44,26 +45,22 @@ const TakeContest = () => {
 
   // Handler for running code
   const handleRun = async (code) => {
-    console.log("Running code with token form takecontest:", token);
     if (!selected) {
       console.error("No question selected");
       return;
     }
-    
     setLoading(true);
     setOutput(null);
-    
     try {
       const result = await runCode({
         code,
         language,
         questionId: selected._id,
         token: token,
+        input,
       });
-      console.log("Run code result form takecontest:", result);
       setOutput(result);
     } catch (err) {
-      console.error("Run code error:", err);
       setOutput({ 
         success: false, 
         error: "Run failed", 
@@ -79,19 +76,17 @@ const TakeContest = () => {
       console.error("No question selected");
       return;
     }
-    
     setLoading(true);
     setOutput(null);
-    
     try {
       const result = await submitCode({
         code,
         language,
         questionId: selected._id,
+        input,
       });
       setOutput(result);
     } catch (err) {
-      console.error("Submit code error:", err);
       setOutput({ 
         success: false, 
         error: "Submit failed", 
@@ -124,6 +119,15 @@ const TakeContest = () => {
           contestId={contestId}
           contestName={contestName}
           token={token}
+        />
+        {/* Input box for stdin */}
+        <textarea
+          className="w-full mt-2 p-2 border rounded"
+          rows={3}
+          placeholder="Custom Input (stdin)"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          disabled={loading}
         />
         <div className="mt-4 flex-1">
           <OutputPanel output={output} />

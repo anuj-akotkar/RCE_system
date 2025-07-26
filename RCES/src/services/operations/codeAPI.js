@@ -1,59 +1,44 @@
 import { toast } from "react-hot-toast";
-import { apiConnector } from "../apiconnector";
-import { codeEndpoints } from "../apis";
+import { judge0Run, judge0Submit } from "./judge0API";
+
+// Map language to Judge0 language_id
+const languageMap = {
+  cpp: 54, // C++ (GCC 9.2.0)
+  python: 71, // Python (3.8.1)
+  java: 62, // Java (OpenJDK 13.0.1)
+};
 
 // Run code (sample test cases)
-export const runCode = async ({ language, code, questionId ,token}) => {
-  console.log("Running code with language form codeapi:", language);
-  console.log("Running code with code form codeapi:", code);
+export const runCode = async ({ language, code, questionId, token, input }) => {
   const toastId = toast.loading("Running code...");
   let result = null;
   try {
-    console.log("Token being sent:", token);
-    const response = await apiConnector(
-      "POST",
-      codeEndpoints.RUN_CODE_API,
-      { language, code, questionId },
-      { Authorization: `Bearer ${token}` }
-    );
-    console.log("Run code response form codeapi:", response);
-    if (!response?.data?.success) {
-      throw new Error("Could not run code.");
-    }
-    result = response.data;
+    const language_id = languageMap[language] || 54;
+    result = await judge0Run({ source_code: code, language_id, stdin: input });
     toast.success("Code executed successfully!");
   } catch (error) {
-    console.log("RUN_CODE_API ERROR:", error);
     toast.error(error.message || "Failed to run code");
-    result = error.response?.data;
+    result = { success: false, error: error.message };
   }
   toast.dismiss(toastId);
   return result;
 };
 
 // Submit code (full evaluation)
-export const submitCode = async ({ language, code, questionId }) => {
+export const submitCode = async ({ language, code, questionId, input }) => {
   const toastId = toast.loading("Submitting code...");
   let result = null;
   try {
-    const response = await apiConnector(
-      "POST",
-      codeEndpoints.SUBMIT_CODE_API,
-      { language, code, questionId }
-    );
-    if (!response?.data?.success) {
-      throw new Error("Could not submit code.");
-    }
-    result = response.data;
-    if (result.submission?.status === 'Accepted') {
+    const language_id = languageMap[language] || 54;
+    result = await judge0Submit({ source_code: code, language_id, stdin: input });
+    if (result.success) {
       toast.success("Code submitted successfully! All test cases passed!");
     } else {
       toast.success("Code submitted successfully!");
     }
   } catch (error) {
-    console.log("SUBMIT_CODE_API ERROR:", error);
     toast.error(error.message || "Failed to submit code");
-    result = error.response?.data;
+    result = { success: false, error: error.message };
   }
   toast.dismiss(toastId);
   return result;
