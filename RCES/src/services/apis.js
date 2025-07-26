@@ -38,7 +38,7 @@ export const questionEndpoints = {
   CREATE_QUESTION_API: BASE_URL + "/questions/create",
   UPDATE_QUESTION_API: BASE_URL + "/questions/update",
   DELETE_QUESTION_API: BASE_URL + "/questions/delete",
-  GET_QUESTION_BOILERPLATE_API: BASE_URL + "/questions", // Usage: /questions/:questionId/boilerplate/:language
+  GET_QUESTION_BOILERPLATE_API: "http://localhost:4000/api/contests",
 };
 
 // CODE EXECUTION ENDPOINTS

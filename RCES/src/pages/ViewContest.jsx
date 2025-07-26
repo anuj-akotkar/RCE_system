@@ -145,6 +145,7 @@ const ViewContestPage = () => {
           disabled={contestEnded}
           questionId={selectedQuestion?._id}
           token={token}
+          contestId={contestId}
         />
         <OutputPanel output={output} />
       </div>

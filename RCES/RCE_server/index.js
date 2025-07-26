@@ -8,7 +8,7 @@ const { cloudinaryconnect } = require("./Config/cloudinary");
 const fileUpload = require("express-fileupload");
 const dotenv = require("dotenv");
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs").promises;
 
 // Setting up port number
 const PORT = process.env.PORT || 4000;
@@ -62,6 +62,7 @@ app.get('/api/contests/:contestName/problems/:problemName/boilerplate/:language'
         const extension = language === 'cpp' ? 'cpp' : language === 'java' ? 'java' : 'py';
         const filePath = path.join(
             process.cwd(),
+            '..',
             'Contests', // Use capital C for consistency
             contestName,
             'problems',
@@ -69,13 +70,16 @@ app.get('/api/contests/:contestName/problems/:problemName/boilerplate/:language'
             'boilerplate',
             `function.${extension}`
         );
+        
         const code = await fs.readFile(filePath, 'utf8');
+        
         res.json({
             success: true,
             language,
             code
         });
     } catch (error) {
+        console.error('Error in boilerplate route:', error);
         res.status(404).json({
             success: false,
             message: 'Boilerplate file not found'

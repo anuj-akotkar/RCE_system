@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { fetchQuestionBoilerplate } from "../../../services/operations/questionAPI";
 
-const CodeEditor = ({ language, setLanguage, onRun, onSubmit, loading, questionId, token }) => {
+const CodeEditor = ({ language, setLanguage, onRun, onSubmit, loading, questionId, token, contestId }) => {
   const defaultCodeTemplates = {
     cpp: `#include<iostream>
 using namespace std;
@@ -36,7 +36,7 @@ public class Main {
 
       setIsLoadingBoilerplate(true);
       try {
-        const boilerplateData = await fetchQuestionBoilerplate(questionId, language, token);
+        const boilerplateData = await fetchQuestionBoilerplate(questionId, language, token, contestId);
         if (boilerplateData && boilerplateData.code) {
           setCode(boilerplateData.code);
         } else {
@@ -53,7 +53,7 @@ public class Main {
     };
 
     fetchBoilerplate();
-  }, [questionId, language, token]);
+  }, [questionId, language, token, contestId]);
 
   const mapLang = {
     cpp: "cpp",

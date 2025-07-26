@@ -117,6 +117,7 @@ const TakeContest = () => {
           loading={loading}
           questionId={selected?._id}
           token={token}
+          contestId={contestId}
         />
         <div className="mt-4 flex-1">
           <OutputPanel output={output} />

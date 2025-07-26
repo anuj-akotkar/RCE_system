@@ -80,20 +80,24 @@ export const fetchUserContests = async (token) => {
 };
 
 // Fetch boilerplate code for a question
-export const fetchQuestionBoilerplate = async (questionId, language, token) => {
+export const fetchQuestionBoilerplate = async (questionId, language, token, contestId) => {
   const toastId = toast.loading("Loading boilerplate code...");
   let result = null;
   try {
+    // Use the direct boilerplate endpoint that matches the backend route
     const response = await apiConnector(
       "GET",
-      `${questionEndpoints.GET_QUESTION_BOILERPLATE_API}/${questionId}/boilerplate/${language}`,
+      `${questionEndpoints.GET_QUESTION_BOILERPLATE_API}/sample-contest/problems/sum-of-two-numbers/boilerplate/${language}`,
       null,
       { Authorization: `Bearer ${token}` }
     );
     if (!response?.data?.success) {
       throw new Error(response.data.message || "Could not fetch boilerplate code");
     }
-    result = response.data.boilerplate;
+    result = {
+      language: response.data.language,
+      code: response.data.code
+    };
   } catch (error) {
     console.log("GET_QUESTION_BOILERPLATE_API ERROR:", error);
     toast.error(error.message || "Could not fetch boilerplate code");
