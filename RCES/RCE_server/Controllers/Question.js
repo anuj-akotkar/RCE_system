@@ -135,7 +135,7 @@ exports.getQuestionBoilerplate = async (req, res) => {
     );
 
     try {
-      const boilerplateCode = await fs.readFile(boilerplatePath, 'utf8');
+      const boilerplateCode = await fs.promises.readFile(boilerplatePath, 'utf8');
       res.json({
         success: true,
         question: {
