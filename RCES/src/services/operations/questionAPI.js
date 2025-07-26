@@ -81,13 +81,18 @@ export const fetchUserContests = async (token) => {
 
 
 // Fetch boilerplate code for a question
-export const fetchQuestionBoilerplate = async (questionId, language, token) => {
+export const fetchQuestionBoilerplate = async (questionId, language, token, contestId, contestName, questionName) => {
   const toastId = toast.loading("Loading boilerplate code...");
   let result = null;
+
+    // Sanitize names: replace spaces and non-alphanumeric chars with "-"
+  const sanitizedContestName = contestName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  const sanitizedQuestionName = questionName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  console.log("Fetching boilerplate for:", { questionId, language, token, contestId, contestName, questionName });
   try {
     const response = await apiConnector(
       "GET",
-      `${questionEndpoints.GET_QUESTION_BOILERPLATE_API}/${questionId}/boilerplate/${language}`,
+      `${questionEndpoints.GET_QUESTION_BOILERPLATE_API}/${sanitizedContestName}/problems/${sanitizedQuestionName}/boilerplate/${language}`,
       null,
       { Authorization: `Bearer ${token}` }
     );

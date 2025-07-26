@@ -56,13 +56,13 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/contactus', contactusroutesRoutes);
 
 // Add a route to serve boilerplate files directly (useful for frontend)
-app.get('/api/contests/:contestName/problems/:problemName/boilerplate/:language', async (req, res) => {
+app.get('/api/v1/Contests/:contestName/problems/:problemName/boilerplate/:language', async (req, res) => {
     try {
         const { contestName, problemName, language } = req.params;
         const extension = language === 'cpp' ? 'cpp' : language === 'java' ? 'java' : 'py';
         const filePath = path.join(
-            process.cwd(),
-            'Contests', // Use capital C for consistency
+            __dirname,
+            '../Contests', // Use capital C for consistency
             contestName,
             'problems',
             problemName,

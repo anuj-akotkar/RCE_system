@@ -29,7 +29,8 @@ const ContestDetailsPage = () => {
   }, [contestId, token]);
 
   const handleStartTest = () => {
-    navigate(`/contests/${contestId}/take`);
+    console.log("Starting contest:", contest?.title, contestId);
+    navigate(`/contests/${contest?.title}/${contestId}/take`);
   };
 
   if (loading) {

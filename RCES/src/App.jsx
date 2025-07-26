@@ -148,12 +148,11 @@ function App() {
         </Route>
 
         {/* Main contest taking route */}
-        <Route path="/contests/:contestId/take" element={
+        <Route path="/contests/:contestName/:contestId/take" element={
           <PrivateRoute>
             <TakeContest />
           </PrivateRoute>
-          }
-        />
+        } />
 
         {/* 404 Page */}
         <Route path="*" element={<Error />} />

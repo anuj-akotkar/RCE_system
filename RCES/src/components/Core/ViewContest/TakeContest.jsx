@@ -11,14 +11,14 @@ import { runCode, submitCode } from "../../../services/operations/codeAPI";
 const { GET_FULL_CONTEST_DETAILS_API } = contestEndpoints;
 
 const TakeContest = () => {
-  const { contestId } = useParams();
+  const { contestName, contestId } = useParams();
   const [questions, setQuestions] = useState([]);
   const [selected, setSelected] = useState(null);
   const [language, setLanguage] = useState("cpp");
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
-
+  console.log("TakeContest props:", { contestId, token, contestName });
   // Fetch contest questions from API
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -33,6 +33,7 @@ const TakeContest = () => {
         const contestQuestions = res.data?.contest?.questions || [];
         setQuestions(contestQuestions);
         setSelected(contestQuestions[0]);
+        console.log("Selected Question:", contestQuestions[0]);
       } catch (err) {
         console.error("Error fetching contest questions:", err);
         setQuestions([]);
@@ -115,7 +116,10 @@ const TakeContest = () => {
           onRun={handleRun}
           onSubmit={handleSubmit}
           loading={loading}
+          questionName={selected?.title}
           questionId={selected?._id}
+          contestId={contestId}
+          contestName={contestName}
           token={token}
         />
         <div className="mt-4 flex-1">

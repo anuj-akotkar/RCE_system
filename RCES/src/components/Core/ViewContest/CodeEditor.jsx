@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { fetchQuestionBoilerplate } from "../../../services/operations/questionAPI";
 
-const CodeEditor = ({ language, setLanguage, onRun, onSubmit, loading, questionId, token }) => {
+const CodeEditor = ({ language, setLanguage, onRun, onSubmit, loading, questionName, questionId, contestId, contestName, token }) => {
+  console.log("CodeEditor props:", { language, questionId, questionName, contestId, contestName, token });
   const defaultCodeTemplates = {
     cpp: `#include<iostream>
 using namespace std;
@@ -28,7 +29,7 @@ public class Main {
   // Fetch boilerplate code when questionId or language changes
   useEffect(() => {
     const fetchBoilerplate = async () => {
-      if (!questionId || !token) {
+      if (!contestName ||!questionName || !token || !questionId || !contestId) {
         // Fallback to default templates if no questionId or token
         setCode(defaultCodeTemplates[language]);
         return;
@@ -36,7 +37,7 @@ public class Main {
 
       setIsLoadingBoilerplate(true);
       try {
-        const boilerplateData = await fetchQuestionBoilerplate(questionId, language, token);
+        const boilerplateData = await fetchQuestionBoilerplate(questionId, language, token, contestId, contestName,questionName);
         if (boilerplateData && boilerplateData.code) {
           setCode(boilerplateData.code);
         } else {
@@ -53,7 +54,7 @@ public class Main {
     };
 
     fetchBoilerplate();
-  }, [questionId, language, token]);
+  }, [questionId, language, token, contestId, contestName, questionName]);
 
   const mapLang = {
     cpp: "cpp",
@@ -109,4 +110,4 @@ public class Main {
   );
 };
 
-export default CodeEditor;
+export default CodeEditor;  
