@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import QuestionPanel from "./QuestionPanel";
 import CodeEditor from "./CodeEditor";
 import OutputPanel from "./OutputPanel";
+import TestJudge0 from "./TestJudge0";
 import { contestEndpoints } from "../../../services/apis";
 import { apiConnector } from "../../../services/apiconnector";
 import { runCode, submitCode } from "../../../services/operations/codeAPI";
@@ -108,6 +109,9 @@ const TakeContest = () => {
       </div>
       {/* Right: Code Editor and Output */}
       <div className="w-1/2 flex flex-col bg-gray-100 p-4">
+        {/* Temporary test component */}
+        <TestJudge0 />
+        
         <CodeEditor
           language={language}
           setLanguage={setLanguage}
