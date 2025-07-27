@@ -17,6 +17,7 @@ const TakeContest = () => {
   const [language, setLanguage] = useState("cpp");
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState("");
   const { token } = useSelector((state) => state.auth);
   //console.log("TakeContest props:", { contestId, token, contestName });
   // Fetch contest questions from API
@@ -59,6 +60,7 @@ const TakeContest = () => {
         language,
         questionId: selected._id,
         token: token,
+        input,
       });
       console.log("Run code result form takecontest:", result);
       setOutput(result);
@@ -88,6 +90,7 @@ const TakeContest = () => {
         code,
         language,
         questionId: selected._id,
+        input,
       });
       setOutput(result);
     } catch (err) {
@@ -124,6 +127,15 @@ const TakeContest = () => {
           contestId={contestId}
           contestName={contestName}
           token={token}
+        />
+         {/* Input box for stdin */}
+        <textarea
+          className="w-full mt-2 p-2 border rounded"
+          rows={3}
+          placeholder="Custom Input (stdin)"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          disabled={loading}
         />
         <div className="mt-4 flex-1">
           <OutputPanel output={output} />
