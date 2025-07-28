@@ -6,10 +6,11 @@ const ContestProgress = require("../Models/Contestprogress");
 const fs = require('fs').promises;
 const path = require('path');
 
-// Use http for local Judge0 instance
+// Enhanced Judge0 configuration for self-hosted instances
 const JUDGE0_URL = process.env.JUDGE0_URL || 'http://localhost:2358';
+const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY || null;
 
-// Hardcoded language configurations (since we're not using DB seeder)
+// Enhanced language configurations with more Judge0 language IDs
 const LANGUAGE_CONFIGS = {
   cpp: {
     judge0Id: 54, // C++ (GCC 9.2.0)
@@ -17,6 +18,7 @@ const LANGUAGE_CONFIGS = {
     defaultTimeLimit: 2,
     defaultMemoryLimit: 256,
     maxCodeSize: 50000,
+    fileExtension: 'cpp'
   },
   java: {
     judge0Id: 62, // Java (OpenJDK 13.0.1)
@@ -24,6 +26,7 @@ const LANGUAGE_CONFIGS = {
     defaultTimeLimit: 3,
     defaultMemoryLimit: 256,
     maxCodeSize: 50000,
+    fileExtension: 'java'
   },
   python: {
     judge0Id: 71, // Python (3.8.1)
@@ -31,6 +34,23 @@ const LANGUAGE_CONFIGS = {
     defaultTimeLimit: 5,
     defaultMemoryLimit: 128,
     maxCodeSize: 50000,
+    fileExtension: 'py'
+  },
+  javascript: {
+    judge0Id: 63, // JavaScript (Node.js 12.14.0)
+    displayName: "JavaScript",
+    defaultTimeLimit: 3,
+    defaultMemoryLimit: 128,
+    maxCodeSize: 50000,
+    fileExtension: 'js'
+  },
+  c: {
+    judge0Id: 50, // C (GCC 9.2.0)
+    displayName: "C",
+    defaultTimeLimit: 2,
+    defaultMemoryLimit: 256,
+    maxCodeSize: 50000,
+    fileExtension: 'c'
   }
 };
 
@@ -38,36 +58,109 @@ const LANGUAGE_CONFIGS = {
 const submissionCooldown = new Map(); // userId -> lastSubmissionTime
 const SUBMISSION_COOLDOWN_MS = 3000; // 3 seconds between submissions
 
-// Unified runCodeWithJudge0 function with retry logic
+// Enhanced Judge0 API client with better error handling
+class Judge0Client {
+    constructor() {
+        this.baseURL = JUDGE0_URL;
+        this.apiKey = JUDGE0_API_KEY;
+        this.timeout = 30000; // 30 seconds
+    }
+
+    async makeRequest(method, endpoint, data = null) {
+        const config = {
+            method,
+            url: `${this.baseURL}${endpoint}`,
+            timeout: this.timeout,
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        if (this.apiKey) {
+            config.headers['X-RapidAPI-Key'] = this.apiKey;
+        }
+
+        if (data) {
+            config.data = data;
+        }
+
+        try {
+            const response = await axios(config);
+            return response.data;
+        } catch (error) {
+            console.error(`Judge0 API Error (${method} ${endpoint}):`, error.message);
+            
+            if (error.response) {
+                // Server responded with error status
+                throw new Error(`Judge0 API Error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
+            } else if (error.request) {
+                // Request was made but no response received
+                throw new Error('Judge0 service is not responding. Please check if the service is running.');
+            } else {
+                // Something else happened
+                throw new Error(`Judge0 connection error: ${error.message}`);
+            }
+        }
+    }
+
+    async createSubmission(languageId, sourceCode, stdin, timeLimit, memoryLimit) {
+        const submissionData = {
+            language_id: languageId,
+            source_code: sourceCode,
+            stdin: stdin || '',
+            expected_output: null,
+            cpu_time_limit: timeLimit,
+            memory_limit: memoryLimit,
+            enable_network: false, // Disable network for security
+            callback_url: null
+        };
+
+        return await this.makeRequest('POST', '/submissions/?base64_encoded=false&wait=true', submissionData);
+    }
+
+    async getSubmission(token) {
+        return await this.makeRequest('GET', `/submissions/${token}?base64_encoded=false`);
+    }
+
+    async getLanguages() {
+        return await this.makeRequest('GET', '/languages');
+    }
+
+    async getAbout() {
+        return await this.makeRequest('GET', '/about');
+    }
+}
+
+// Initialize Judge0 client
+const judge0Client = new Judge0Client();
+
+// Enhanced runCodeWithJudge0 function with better error handling
 async function runCodeWithJudge0(languageId, sourceCode, stdin, timeLimit = 2, memoryLimit = 128000) {
     const maxRetries = 3;
     let lastError;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            const response = await axios.post(
-                `${JUDGE0_URL}/submissions/?base64_encoded=false&wait=true`,
-                {
-                    language_id: languageId,
-                    source_code: sourceCode,
-                    stdin: stdin,
-                    expected_output: null,
-                    cpu_time_limit: timeLimit,
-                    memory_limit: memoryLimit,
-                },
-                {
-                    timeout: 30000, // 30 second timeout
-                }
+            console.log(`Attempt ${attempt}: Running code with Judge0 (Language ID: ${languageId})`);
+            
+            const result = await judge0Client.createSubmission(
+                languageId,
+                sourceCode,
+                stdin,
+                timeLimit,
+                memoryLimit
             );
 
+            console.log(`Judge0 execution successful on attempt ${attempt}`);
+            
             return {
-                stdout: response.data.stdout || '',
-                stderr: response.data.stderr || '',
-                status: response.data.status || {},
-                time: response.data.time || '0',
-                memory: response.data.memory || 0,
-                compile_output: response.data.compile_output || '',
-                message: response.data.message || '',
+                stdout: result.stdout || '',
+                stderr: result.stderr || '',
+                status: result.status || {},
+                time: result.time || '0',
+                memory: result.memory || 0,
+                compile_output: result.compile_output || '',
+                message: result.message || '',
             };
         } catch (error) {
             lastError = error;
@@ -75,13 +168,15 @@ async function runCodeWithJudge0(languageId, sourceCode, stdin, timeLimit = 2, m
             
             if (attempt < maxRetries) {
                 // Exponential backoff
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                const delay = 1000 * Math.pow(2, attempt - 1);
+                console.log(`Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
     }
 
     console.error('All Judge0 attempts failed:', lastError);
-    throw new Error('Code execution service temporarily unavailable');
+    throw new Error(`Code execution failed: ${lastError.message}`);
 }
 
 // Validate and sanitize code
@@ -594,6 +689,82 @@ exports.getSubmissionById = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to fetch submission"
+        });
+    }
+};
+
+// Judge0 health check endpoint
+exports.checkJudge0Health = async (req, res) => {
+    try {
+        const Judge0Service = require('../Services/Judge0Service');
+        const health = await Judge0Service.checkHealth();
+        
+        res.status(200).json({
+            success: true,
+            judge0: health
+        });
+    } catch (err) {
+        console.error('Judge0 health check error:', err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to check Judge0 health"
+        });
+    }
+};
+
+// Get available languages from Judge0
+exports.getAvailableLanguages = async (req, res) => {
+    try {
+        const Judge0Service = require('../Services/Judge0Service');
+        const languages = await Judge0Service.getAvailableLanguages();
+        
+        res.status(200).json({
+            success: true,
+            languages: languages
+        });
+    } catch (err) {
+        console.error('Get languages error:', err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch available languages"
+        });
+    }
+};
+
+// Test Judge0 submission
+exports.testJudge0Submission = async (req, res) => {
+    try {
+        const Judge0Service = require('../Services/Judge0Service');
+        const testResult = await Judge0Service.testSubmission();
+        
+        res.status(200).json({
+            success: true,
+            testResult: testResult
+        });
+    } catch (err) {
+        console.error('Test submission error:', err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to test Judge0 submission"
+        });
+    }
+};
+
+// Get Judge0 configuration
+exports.getJudge0Configuration = async (req, res) => {
+    try {
+        const Judge0Service = require('../Services/Judge0Service');
+        const config = await Judge0Service.getConfiguration();
+        
+        res.status(200).json({
+            success: true,
+            configuration: config
+        });
+    } catch (err) {
+        console.error('Get configuration error:', err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch Judge0 configuration"
         });
     }
 };

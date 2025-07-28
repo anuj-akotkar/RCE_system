@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Editor from '@monaco-editor/react';
-import { runCode, submitCode } from '../../services/codeAPI';
+import { runCode, submitCode, checkJudge0Health } from '../../services/codeAPI';
 import { apiConnector } from '../../services/apiconnector';
 import { questionEndpoints } from '../../services/apis';
 import toast from 'react-hot-toast';
@@ -14,6 +14,7 @@ const CodeEditor = ({ question, contestId }) => {
   const [results, setResults] = useState(null);
   const [activeTab, setActiveTab] = useState('problem');
   const [boilerplateLoading, setBoilerplateLoading] = useState(false);
+  const [judge0Status, setJudge0Status] = useState(null);
 
   // Language configuration
   const languages = [
@@ -28,6 +29,11 @@ const CodeEditor = ({ question, contestId }) => {
       fetchBoilerplate();
     }
   }, [language, question]);
+
+  // Check Judge0 status on component mount
+  useEffect(() => {
+    checkJudge0Status();
+  }, []);
 
   const fetchBoilerplate = async () => {
     setBoilerplateLoading(true);
@@ -52,9 +58,28 @@ const CodeEditor = ({ question, contestId }) => {
     }
   };
 
+  const checkJudge0Status = async () => {
+    try {
+      const response = await checkJudge0Health(token);
+      setJudge0Status(response.judge0);
+      
+      if (!response.judge0?.success) {
+        toast.error('Judge0 service is not available. Code execution may not work properly.');
+      }
+    } catch (error) {
+      console.error('Error checking Judge0 status:', error);
+      setJudge0Status({ success: false, error: 'Failed to check status' });
+    }
+  };
+
   const handleRunCode = async () => {
     if (!code.trim()) {
       toast.error("Please write some code first");
+      return;
+    }
+
+    if (!judge0Status?.success) {
+      toast.error("Judge0 service is not available. Please try again later.");
       return;
     }
 
@@ -76,6 +101,11 @@ const CodeEditor = ({ question, contestId }) => {
   const handleSubmitCode = async () => {
     if (!code.trim()) {
       toast.error("Please write some code first");
+      return;
+    }
+
+    if (!judge0Status?.success) {
+      toast.error("Judge0 service is not available. Please try again later.");
       return;
     }
 
@@ -111,17 +141,27 @@ const CodeEditor = ({ question, contestId }) => {
             ))}
           </select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {/* Judge0 Status Indicator */}
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${
+              judge0Status?.success ? 'bg-green-500' : 'bg-red-500'
+            }`}></div>
+            <span className="text-xs text-gray-300">
+              {judge0Status?.success ? 'Judge0 Online' : 'Judge0 Offline'}
+            </span>
+          </div>
+          
           <button
             onClick={handleRunCode}
-            disabled={loading}
+            disabled={loading || !judge0Status?.success}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading && results?.type !== 'submit' ? 'Running...' : 'Run Code'}
           </button>
           <button
             onClick={handleSubmitCode}
-            disabled={loading}
+            disabled={loading || !judge0Status?.success}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading && results?.type === 'submit' ? 'Submitting...' : 'Submit'}
