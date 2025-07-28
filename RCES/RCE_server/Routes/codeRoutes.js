@@ -4,7 +4,11 @@ const {
     runSample, 
     submit, 
     getSubmissionsByQuestion, 
-    getSubmissionById
+    getSubmissionById,
+    checkJudge0Health,
+    getAvailableLanguages,
+    testJudge0Submission,
+    getJudge0Configuration
 } = require("../Controllers/JudgeController");
 const { auth, isStudent } = require("../Middlewares/auth");
 
@@ -20,25 +24,16 @@ router.get("/submissions/question/:questionId", auth, getSubmissionsByQuestion);
 // Get a single submission by ID
 router.get("/submissions/:submissionId", auth, getSubmissionById);
 
-// Health check for Judge0 connectivity
-router.get("/health", auth, async (req, res) => {
-    try {
-        const axios = require('axios');
-        const JUDGE0_URL = process.env.JUDGE0_URL || 'http://localhost:2358';
-        const response = await axios.get(`${JUDGE0_URL}/about`);
-        res.json({
-            success: true,
-            judge0: {
-                version: response.data.version,
-                status: 'online'
-            }
-        });
-    } catch (error) {
-        res.status(503).json({
-            success: false,
-            message: 'Code execution service unavailable'
-        });
-    }
-});
+// Enhanced Judge0 health check
+router.get("/health", auth, checkJudge0Health);
+
+// Get available languages from Judge0
+router.get("/languages", auth, getAvailableLanguages);
+
+// Test Judge0 submission
+router.post("/test", auth, testJudge0Submission);
+
+// Get Judge0 configuration
+router.get("/configuration", auth, getJudge0Configuration);
 
 module.exports = router;

@@ -45,6 +45,10 @@ export const questionEndpoints = {
 export const codeEndpoints = {
   RUN_CODE_API: BASE_URL + "/code/run",
   SUBMIT_CODE_API: BASE_URL + "/code/submit",
+  JUDGE0_HEALTH_API: BASE_URL + "/code/health",
+  JUDGE0_LANGUAGES_API: BASE_URL + "/code/languages",
+  JUDGE0_TEST_API: BASE_URL + "/code/test",
+  JUDGE0_CONFIG_API: BASE_URL + "/code/configuration",
 };
 
 // SUBMISSION ENDPOINTS

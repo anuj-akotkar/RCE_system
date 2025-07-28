@@ -7,7 +7,10 @@ const {
   SUBMIT_CODE_API,
   GET_SUBMISSIONS_API,
   GET_SUBMISSION_API,
-  JUDGE0_HEALTH_API
+  JUDGE0_HEALTH_API,
+  JUDGE0_LANGUAGES_API,
+  JUDGE0_TEST_API,
+  JUDGE0_CONFIG_API
 } = codeEndpoints;
 
 // Run code on sample test cases
@@ -103,5 +106,44 @@ export const checkJudge0Health = async (token) => {
   } catch (error) {
     console.error("JUDGE0 HEALTH CHECK ERROR:", error);
     return { success: false, message: "Judge0 service unavailable" };
+  }
+};
+
+// Get available languages from Judge0
+export const getAvailableLanguages = async (token) => {
+  try {
+    const response = await apiConnector("GET", JUDGE0_LANGUAGES_API, null, {
+      Authorization: `Bearer ${token}`,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("GET LANGUAGES ERROR:", error);
+    return { success: false, message: "Failed to fetch available languages" };
+  }
+};
+
+// Test Judge0 submission
+export const testJudge0Submission = async (token) => {
+  try {
+    const response = await apiConnector("POST", JUDGE0_TEST_API, null, {
+      Authorization: `Bearer ${token}`,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("TEST SUBMISSION ERROR:", error);
+    return { success: false, message: "Failed to test Judge0 submission" };
+  }
+};
+
+// Get Judge0 configuration
+export const getJudge0Configuration = async (token) => {
+  try {
+    const response = await apiConnector("GET", JUDGE0_CONFIG_API, null, {
+      Authorization: `Bearer ${token}`,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("GET CONFIGURATION ERROR:", error);
+    return { success: false, message: "Failed to fetch Judge0 configuration" };
   }
 };
