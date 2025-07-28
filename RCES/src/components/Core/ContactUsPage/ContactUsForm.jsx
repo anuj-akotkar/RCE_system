@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 
 import CountryCode from "../../../data/countrycode.json"
 import { apiConnector } from "../../../services/apiconnector"
-import { contactEndpoints } from "../../../services/apis"
+import { contactusEndpoint } from "../../../services/apis"
 
 const ContactUsForm = () => {
   const [loading, setLoading] = useState(false)
@@ -20,7 +20,7 @@ const ContactUsForm = () => {
       setLoading(true)
       const res = await apiConnector(
         "POST",
-        contactEndpoints.CONTACT_US_API,
+        contactusEndpoint.CONTACT_US_API,
         data
       )
       // console.log("Email Res - ", res)

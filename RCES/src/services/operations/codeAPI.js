@@ -1,114 +1,107 @@
-import { toast } from "react-hot-toast";
-import { apiConnector } from "../apiconnector";
-import { codeEndpoints } from "../apis";
+import { apiConnector } from "./apiconnector";
+import { codeEndpoints } from "./apis";
+import toast from "react-hot-toast";
 
-// Map language to Judge0 language_id
-const languageMap = {
-  cpp: 54, // C++ (GCC 9.2.0)
-  python: 71, // Python (3.8.1)
-  java: 62, // Java (OpenJDK 13.0.1)
-};
+const {
+  RUN_CODE_API,
+  SUBMIT_CODE_API,
+  GET_SUBMISSIONS_API,
+  GET_SUBMISSION_API,
+  JUDGE0_HEALTH_API
+} = codeEndpoints;
 
-// Run code (sample test cases)
-export const runCode = async ({ language, code, questionId ,token,input}) => {
-  console.log("Running code with language form codeapi:", language);
-  console.log("Running code with code form codeapi:", code);
+// Run code on sample test cases
+export const runCode = async (questionId, language, code, token) => {
   const toastId = toast.loading("Running code...");
-  let result = null;
   try {
-    console.log("Token being sent:", token);
-    const response = await apiConnector(
-      "POST",
-      codeEndpoints.RUN_CODE_API,
-      { language, code, questionId },
-      { Authorization: `Bearer ${token}` }
-    );
-    console.log("Run code response form codeapi:", response);
+    const response = await apiConnector("POST", RUN_CODE_API, {
+      questionId,
+      language,
+      code
+    }, {
+      Authorization: `Bearer ${token}`,
+    });
+
     if (!response?.data?.success) {
-      throw new Error("Could not run code.");
+      throw new Error(response?.data?.message || "Failed to run code");
     }
-    result = response.data;
-    toast.success("Code executed successfully!");
+
+    toast.dismiss(toastId);
+    return response.data;
   } catch (error) {
-    console.log("RUN_CODE_API ERROR:", error);
-    toast.error(error.message || "Failed to run code");
-    result = error.response?.data;
+    console.error("RUN CODE ERROR:", error);
+    toast.dismiss(toastId);
+    toast.error(error?.response?.data?.message || "Failed to run code");
+    throw error;
   }
-  toast.dismiss(toastId);
-  return result;
 };
 
-// Submit code (full evaluation)
-export const submitCode = async ({ language, code, questionId, token, input }) => {
-  const toastId = toast.loading("Submitting code...");
-  let result = null;
+// Submit code for evaluation
+export const submitCode = async (questionId, language, code, token) => {
+  const toastId = toast.loading("Submitting solution...");
   try {
-    const response = await apiConnector(
-      "POST",
-      codeEndpoints.SUBMIT_CODE_API,
-      { language, code, questionId, input },
-      { Authorization: `Bearer ${token}` }
-    );
-      if (!response?.data?.success) {
-      throw new Error("Could not submit code.");
+    const response = await apiConnector("POST", SUBMIT_CODE_API, {
+      questionId,
+      language,
+      code
+    }, {
+      Authorization: `Bearer ${token}`,
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to submit code");
     }
-    result = response.data;
-    if (result.submission?.status === 'Accepted') {
-      toast.success("Code submitted successfully! All test cases passed!");
+
+    toast.dismiss(toastId);
+    
+    // Show success/failure toast based on result
+    if (response.data.submission.passed) {
+      toast.success("All test cases passed! 🎉");
     } else {
-      toast.success("Code submitted successfully!");
+      toast.error(`${response.data.submission.passedTests}/${response.data.submission.totalTests} test cases passed`);
     }
+    
+    return response.data;
   } catch (error) {
-    console.log("SUBMIT_CODE_API ERROR:", error);
-    toast.error(error.message || "Failed to submit code");
-    result = error.response?.data;
+    console.error("SUBMIT CODE ERROR:", error);
+    toast.dismiss(toastId);
+    toast.error(error?.response?.data?.message || "Failed to submit code");
+    throw error;
   }
-  toast.dismiss(toastId);
-  return result;
 };
 
-// Get submissions by question
-export const getSubmissionsByQuestion = async (questionId) => {
-  const toastId = toast.loading("Loading submissions...");
-  let result = null;
+// Get submissions for a question
+export const getSubmissions = async (questionId, page = 1, limit = 10, token) => {
   try {
     const response = await apiConnector(
-      "GET",
-      `${codeEndpoints.SUBMIT_CODE_API.replace('/submit', '')}/question/${questionId}`
+      "GET", 
+      `${GET_SUBMISSIONS_API}/${questionId}?page=${page}&limit=${limit}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
     );
+
     if (!response?.data?.success) {
-      throw new Error("Could not fetch submissions.");
+      throw new Error(response?.data?.message || "Failed to fetch submissions");
     }
-    result = response.data;
-    toast.success("Submissions loaded!");
+
+    return response.data;
   } catch (error) {
-    console.log("GET_SUBMISSIONS_API ERROR:", error);
-    toast.error(error.message || "Failed to fetch submissions");
-    result = error.response?.data;
+    console.error("GET SUBMISSIONS ERROR:", error);
+    throw error;
   }
-  toast.dismiss(toastId);
-  return result;
 };
 
-// Get submission by ID
-export const getSubmissionById = async (submissionId) => {
-  const toastId = toast.loading("Loading submission details...");
-  let result = null;
+// Check Judge0 health
+export const checkJudge0Health = async (token) => {
   try {
-    const response = await apiConnector(
-      "GET",
-      `${codeEndpoints.SUBMIT_CODE_API.replace('/submit', '')}/${submissionId}`
-    );
-    if (!response?.data?.success) {
-      throw new Error("Could not fetch submission details.");
-    }
-    result = response.data;
-    toast.success("Submission details loaded!");
+    const response = await apiConnector("GET", JUDGE0_HEALTH_API, null, {
+      Authorization: `Bearer ${token}`,
+    });
+    return response.data;
   } catch (error) {
-    console.log("GET_SUBMISSION_API ERROR:", error);
-    toast.error(error.message || "Failed to fetch submission details");
-    result = error.response?.data;
+    console.error("JUDGE0 HEALTH CHECK ERROR:", error);
+    return { success: false, message: "Judge0 service unavailable" };
   }
-  toast.dismiss(toastId);
-  return result;
 };

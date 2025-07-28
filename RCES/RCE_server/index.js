@@ -39,51 +39,24 @@ app.use(
 cloudinaryconnect();
 
 // Setting up routes
-const contactusroutesRoutes = require('./Routes/Contactusroutes');
+const contactusRoutes = require('./Routes/Contactusroutes');
 const contestRoutes = require('./Routes/Contestroutes');
 const questionRoutes = require('./Routes/questionroutes');
 const profileRoutes = require('./Routes/Profileroutes');
 const userRoutes = require('./Routes/Userroutes');
-const submissionRoutes = require('./Routes/submissionroutes');
 const codeRoutes = require("./Routes/codeRoutes");
+const feedbackRoutes = require('./Routes/feedbackroutes');
+const contestProgressRoutes = require('./Routes/contestprogressroutes');
 
 // Register routes
-app.use('/api/v1/code', codeRoutes);
+app.use('/api/v1/auth', userRoutes);
+app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/contests', contestRoutes);
 app.use('/api/v1/questions', questionRoutes);
-app.use('/api/v1/profile', profileRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/contactus', contactusroutesRoutes);
-
-// Add a route to serve boilerplate files directly (useful for frontend)
-app.get('/api/v1/Contests/:contestName/problems/:problemName/boilerplate/:language', async (req, res) => {
-    try {
-        const { contestName, problemName, language } = req.params;
-        const extension = language === 'cpp' ? 'cpp' : language === 'java' ? 'java' : 'py';
-        const filePath = path.join(
-            __dirname,
-            '../Contests', // Use capital C for consistency
-            contestName,
-            'problems',
-            problemName,
-            'boilerplate',
-            `function.${extension}`
-        );
-        console.log("Boilerplate file path:", filePath);
-        const code = await fs.promises.readFile(filePath, 'utf8');
-        res.json({
-            success: true,
-            language,
-            code
-        });
-    } catch (error) {
-        console.error("Error fetching boilerplate:", error);
-        res.status(404).json({
-            success: false,
-            message: 'Boilerplate file not found'
-        });
-    }
-});
+app.use('/api/v1/code', codeRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
+app.use('/api/v1/progress', contestProgressRoutes);
+app.use('/api/v1/contactus', contactusRoutes);
 
 // Testing the server
 app.get("/", (req, res) => {
@@ -93,8 +66,25 @@ app.get("/", (req, res) => {
 	});
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        success: false,
+        message: 'Something went wrong!',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
+    });
+});
+
 // Listening to the server
 app.listen(PORT, () => {
 	console.log(`App is listening at ${PORT}`);
 });
-
