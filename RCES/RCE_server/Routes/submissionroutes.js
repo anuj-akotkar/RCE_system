@@ -4,10 +4,10 @@ const { runSample, submit, getSubmissionsByQuestion, getSubmissionById } = requi
 const { auth, isStudent } = require("../Middlewares/auth");
 
 // Run code on sample/public testcases
-router.post("/run", auth, isStudent, runSample);
+router.post("/submissions/run", auth, isStudent, runSample);
 
 // Submit code for evaluation (all testcases)
-router.post("/submit", auth, isStudent, submit);
+router.post("/submissions/submit", auth, isStudent, submit);
 
 // Get all submissions for a question
 router.get("/question/:questionId", auth, getSubmissionsByQuestion);

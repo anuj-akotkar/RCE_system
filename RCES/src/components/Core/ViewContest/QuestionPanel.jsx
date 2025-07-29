@@ -14,7 +14,7 @@ const QuestionPanel = ({ questions, selected, onSelect }) => {
   };
 
   return (
-    <div className="bg-white text-gray-800 p-4 rounded-lg shadow h-full overflow-y-auto">
+    <div className="bg-white p-4 rounded-lg shadow h-full overflow-y-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-extrabold text-blue-800 tracking-wide">Questions</h2>
         {selected && (
@@ -27,7 +27,7 @@ const QuestionPanel = ({ questions, selected, onSelect }) => {
         )}
       </div>
       
-      <ul className="space-y-3 text-gray-800 mb-6">
+      <ul className="space-y-3 mb-6">
         {questions.map((q, index) => (
           <li
             key={q._id}

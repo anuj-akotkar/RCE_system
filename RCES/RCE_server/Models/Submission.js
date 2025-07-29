@@ -53,6 +53,12 @@ const submissionSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    output: { // To store results from Judge0
+      type: String, 
+    },
+    judge0Token: { // The token from Judge0, useful for debugging
+      type: String, 
+    },
   },
   { timestamps: true }
 );

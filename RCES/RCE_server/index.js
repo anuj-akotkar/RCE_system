@@ -54,6 +54,7 @@ app.use('/api/v1/questions', questionRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/contactus', contactusroutesRoutes);
+app.use('/api/v1/result',submissionRoutes);
 
 // Add a route to serve boilerplate files directly (useful for frontend)
 app.get('/api/v1/Contests/:contestName/problems/:problemName/boilerplate/:language', async (req, res) => {

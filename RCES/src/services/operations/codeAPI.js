@@ -2,15 +2,24 @@ import { toast } from "react-hot-toast";
 import { apiConnector } from "../apiconnector";
 import { codeEndpoints } from "../apis";
 
+// Map language to Judge0 language_id
+const languageMap = {
+  cpp: 54, // C++ (GCC 9.2.0)
+  python: 71, // Python (3.8.1)
+  java: 62, // Java (OpenJDK 13.0.1)
+
+};
+
 // Run code (sample test cases)
-export const runCode = async ({ language, code, questionId }) => {
+export const runCode = async ({ language, code, questionId ,token,input}) => {
   const toastId = toast.loading("Running code...");
   let result = null;
   try {
     const response = await apiConnector(
       "POST",
       codeEndpoints.RUN_CODE_API,
-      { language, code, questionId }
+      { language, code, questionId,input },
+       { Authorization: `Bearer ${token}` }
     );
     if (!response?.data?.success) {
       throw new Error("Could not run code.");
@@ -27,14 +36,15 @@ export const runCode = async ({ language, code, questionId }) => {
 };
 
 // Submit code (full evaluation)
-export const submitCode = async ({ language, code, questionId }) => {
+export const submitCode = async ({ language, code, questionId ,token ,input}) => {
   const toastId = toast.loading("Submitting code...");
   let result = null;
   try {
     const response = await apiConnector(
       "POST",
       codeEndpoints.SUBMIT_CODE_API,
-      { language, code, questionId }
+      { language, code, questionId,input },
+      { Authorization: `Bearer ${token}` }
     );
     if (!response?.data?.success) {
       throw new Error("Could not submit code.");

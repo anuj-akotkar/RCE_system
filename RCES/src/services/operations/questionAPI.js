@@ -96,10 +96,12 @@ export const fetchQuestionBoilerplate = async (questionId, language, token, cont
       null,
       { Authorization: `Bearer ${token}` }
     );
+    console.log("response of feactquestionBoilerplate",response);
     if (!response?.data?.success) {
       throw new Error(response.data.message || "Could not fetch boilerplate code");
     }
-    result = response.data.boilerplate;
+    result = response.data.code;
+    console.log("result",result);
   } catch (error) {
     console.log("GET_QUESTION_BOILERPLATE_API ERROR:", error);
     toast.error(error.message || "Could not fetch boilerplate code");

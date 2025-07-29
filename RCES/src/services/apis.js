@@ -94,3 +94,8 @@ export const settingsEndpoints = {
   DELETE_PROFILE_API: BASE_URL + "/profile/deleteProfile",
 };
 
+//CONTEST RUN AND SUBMISSION API
+export const contestresultpoints = {
+  CONTEST_RESULT_RUN_API : BASE_URL + "/result/run/submission",
+  CONTEST_RESULT_SUBMIT_API : BASE_URL + "/result/submit/submission",
+}

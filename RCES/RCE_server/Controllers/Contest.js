@@ -2,9 +2,85 @@ const Contest = require("../Models/Contest");
 const User = require("../Models/User");
 const Question = require("../Models/Questions");
 const TestCase = require("../Models/Testcases");
+const Submission = require("../Models/Submission"); // 👈 Import Submission model
+const ContestParticipation = require("../Models/ContestParticipation"); // 👈 Import ContestParticipation model
 const mongoose = require("mongoose");
 const ContestFileManager = require("../Services/ContestFileManager");
 const BoilerplateGeneratorService = require("../boilerplate-generator/dist/index");
+
+// ... (all your existing functions like createContest, editContest, etc.)
+
+// ✅ Submit Contest and Finalize Score
+exports.submitContest = async (req, res) => {
+  try {
+    const { contestId } = req.params;
+    const studentId = req.user.id;
+
+    // 1. Find the contest and its questions
+    const contest = await Contest.findById(contestId).populate("questions");
+
+    if (!contest) {
+      return res.status(404).json({
+        success: false,
+        message: "Contest not found.",
+      });
+    }
+
+    if (contest.questions.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "This contest has no questions to score."
+        });
+    }
+
+    let finalScore = 0;
+    const totalPossibleScore = contest.questions.length * 100; // Assuming each question is worth 100 points
+
+    // 2. Find the user's best submission for each question in the contest
+    for (const question of contest.questions) {
+      const bestSubmission = await Submission.findOne({
+        student: studentId,
+        question: question._id,
+      }).sort({ passedTestCases: -1 }); // Find submission with the most passed test cases
+
+      if (bestSubmission && bestSubmission.totalTestCases > 0) {
+        // Calculate score for this question (out of 100)
+        const questionScore = (bestSubmission.passedTestCases / bestSubmission.totalTestCases) * 100;
+        finalScore += questionScore;
+      }
+    }
+
+    // 3. Update the ContestParticipation record
+    const participation = await ContestParticipation.findOneAndUpdate(
+      { contest: contestId, student: studentId },
+      {
+        finalScore: finalScore,
+        status: "Completed",
+        completedAt: new Date(),
+      },
+      { new: true, upsert: true } // `upsert: true` creates the record if it doesn't exist
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Contest submitted successfully!",
+      data: {
+        finalScore: participation.finalScore,
+        totalPossibleScore: totalPossibleScore,
+        status: participation.status,
+      },
+    });
+
+  } catch (err) {
+    console.error('💥 Contest submission error:', err);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while submitting the contest.",
+      error: err.message,
+    });
+  }
+};
+
 // ✅ Create Contest
 exports.createContest = async (req, res) => {
   try {

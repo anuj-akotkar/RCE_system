@@ -3,6 +3,12 @@ const mongoose = require("mongoose");
 // Define the Question Schema
 const questionSchema = new mongoose.Schema(
   {
+    // 👇 ADD THIS FIELD
+    contest: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Contest',
+      required: true,
+    },
     title: {
       type: String,
       required: [true, "Question title is required"],
@@ -62,8 +68,7 @@ const questionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Add an index for faster retrieval of questions by difficulty
-questionSchema.index({ difficulty: 1 });
+// Add an index for faster lookups by title within a contest
+questionSchema.index({ contest: 1, title: 1 });
 
-// Prevent OverwriteModelError in dev
 module.exports = mongoose.models.Question || mongoose.model("Question", questionSchema);
