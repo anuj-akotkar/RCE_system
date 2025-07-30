@@ -30,7 +30,7 @@ const ContestDetailsPage = () => {
 
   const handleStartTest = () => {
     console.log("Starting contest:", contest?.title, contestId);
-    navigate(`/contests/${contest?.title}/${contestId}/take`);
+    navigate(`/contests/${contest?.title}/${contestId}/lobby`);
   };
 
   if (loading) {
@@ -95,13 +95,22 @@ const ContestDetailsPage = () => {
               <span className="text-white">{contest.endTime ? new Date(contest.endTime).toLocaleString() : "N/A"}</span>
             </span>
           </div>
-          <button
-            className="mt-10 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-extrabold py-4 px-12 rounded-xl shadow-lg transition-all duration-200 text-2xl tracking-wide"
-            onClick={handleStartTest}
-            aria-label="Start Test"
-          >
-            Start Contest
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 mt-10">
+            <button
+              className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-extrabold py-4 px-12 rounded-xl shadow-lg transition-all duration-200 text-2xl tracking-wide"
+              onClick={handleStartTest}
+              aria-label="Start Test"
+            >
+              Start Contest
+            </button>
+            <button
+              className="bg-gradient-to-r from-green-600 to-green-400 hover:from-green-700 hover:to-green-500 text-white font-extrabold py-4 px-12 rounded-xl shadow-lg transition-all duration-200 text-2xl tracking-wide"
+              onClick={() => navigate(`/contests/${contestId}/leaderboard`)}
+              aria-label="View Leaderboard"
+            >
+              View Leaderboard
+            </button>
+          </div>
         </div>
       </div>
     </div>

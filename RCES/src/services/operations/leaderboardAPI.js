@@ -8,13 +8,15 @@ const {
 } = leaderboardEndpoints;
 
 // Fetch leaderboard for a contest
-export const fetchLeaderboard = async (contestId) => {
+export const fetchLeaderboard = async (contestId, token) => {
   const toastId = toast.loading("Loading leaderboard...");
   let result = [];
   try {
     const response = await apiConnector(
       "GET",
-      `${GET_LEADERBOARD_API}/${contestId}`
+      `${GET_LEADERBOARD_API}/${contestId}`,
+      null,
+      { Authorization: `Bearer ${token}` }
     );
     if (!response?.data?.success) {
       throw new Error("Could not fetch leaderboard");

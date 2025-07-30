@@ -49,7 +49,7 @@ export const codeEndpoints = {
 
 // SUBMISSION ENDPOINTS
 export const submissionEndpoints = {
-  SUBMIT_CODE_API: BASE_URL + "/submissions",
+  SUBMIT_CODE_API: BASE_URL + "/result/submissions",
   GET_SUBMISSIONS_API: BASE_URL + "/submissions",
 };
 
@@ -96,6 +96,6 @@ export const settingsEndpoints = {
 
 //CONTEST RUN AND SUBMISSION API
 export const contestresultpoints = {
-  CONTEST_RESULT_RUN_API : BASE_URL + "/result/run/submission",
-  CONTEST_RESULT_SUBMIT_API : BASE_URL + "/result/submit/submission",
+  CONTEST_RESULT_RUN_API : BASE_URL + "/result/submissions/run",
+  CONTEST_RESULT_SUBMIT_API : BASE_URL + "/result/submissions/submit",
 }

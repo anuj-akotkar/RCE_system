@@ -18,11 +18,12 @@ import VerifyEmail from "./pages/VerifyEmail";
 import About from "./pages/About";
 import Contact from "./pages/contactus";
 import Error from "./pages/Error";
+import ContestLobby from "./pages/ContestLobby";
 
 // Contest-related Pages (create these if not present)
 import Contests from "./pages/ContestPage";
 import ContestDetails from "./pages/ContestDetails";
-//import Leaderboard from "./pages/Leaderboard";
+import Leaderboard from "./pages/Leaderboard";
 import Submissions from "./pages/SubmissionPage";
 import Instructor from "./components/Core/Dashboard/Instructor";
 import MyContests from "./components/Core/Dashboard/MyContests";
@@ -71,7 +72,7 @@ function App() {
         <Route path="/contests/:contestId" element={<ContestDetails />} />
 
         {/* Leaderboard and submissions */}
-       {/* <Route path="/contests/:contestId/leaderboard" element={<Leaderboard />} /> */}
+        <Route path="/contests/:contestId/leaderboard" element={<Leaderboard />} /> 
         <Route path="/contests/:contestId/submissions" element={<Submissions />} />
 
         {/* Auth routes */}
@@ -148,7 +149,12 @@ function App() {
         </Route>
 
         {/* Main contest taking route */}
-        <Route path="/contests/:contestName/:contestId/take" element={
+        <Route path="/contests/:contestName/:contestId/lobby" element={
+          <PrivateRoute>
+            <ContestLobby />
+          </PrivateRoute>
+        } />
+        <Route path="/contests/:contestName/:contestId/question/:questionId/:index/take" element={
           <PrivateRoute>
             <TakeContest />
           </PrivateRoute>

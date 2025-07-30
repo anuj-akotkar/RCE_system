@@ -46,6 +46,7 @@ const profileRoutes = require('./Routes/Profileroutes');
 const userRoutes = require('./Routes/Userroutes');
 const submissionRoutes = require('./Routes/submissionroutes');
 const codeRoutes = require("./Routes/codeRoutes");
+const leaderboardRoutes = require('./Routes/leaderboardRoutes');
 
 // Register routes
 app.use('/api/v1/code', codeRoutes);
@@ -55,6 +56,8 @@ app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/contactus', contactusroutesRoutes);
 app.use('/api/v1/result',submissionRoutes);
+app.use('/api/v1/submissions',submissionRoutes);
+app.use('/api/v1/contests/leaderboard', leaderboardRoutes);
 
 // Add a route to serve boilerplate files directly (useful for frontend)
 app.get('/api/v1/Contests/:contestName/problems/:problemName/boilerplate/:language', async (req, res) => {

@@ -2,56 +2,36 @@ import React, { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { fetchQuestionBoilerplate } from "../../../services/operations/questionAPI";
 
-// We remove `language` and `setLanguage` from the props list
+// ✅ CORRECTED: Props are cleaned up.
 const CodeEditor = ({ onRun, onSubmit, loading, questionName, questionId, contestId, contestName, token }) => {
-  // 1. Add useState for managing the selected language
-  const [language, setLanguage] = useState("cpp"); // Default language is C++
-
-  const defaultCodeTemplates = {
-    cpp: `#include<iostream>
-using namespace std;
-
-int main() {
-    // your code goes here
-    return 0;
-}`,
-    python: `# Write your code here
-print("Hello, World!")`,
-    java: `import java.util.*;
-
-public class Main {
-    public static void main(String[] args) {
-        // your code here
-    }
-}`
-  };
-
-  const [code, setCode] = useState(defaultCodeTemplates[language]);
+  const [language, setLanguage] = useState("cpp");
+  const [code, setCode] = useState("");
   const [isLoadingBoilerplate, setIsLoadingBoilerplate] = useState(false);
 
-  // Fetch boilerplate code when questionId or language changes
-  useEffect(() => {
-    // When the language changes, first update the code to the default template
-    // This provides immediate feedback to the user while boilerplate loads
-    setCode(defaultCodeTemplates[language]);
+  const defaultCodeTemplates = {
+    cpp: `#include<iostream>\nusing namespace std;\n\nint main() {\n    // your code goes here\n    return 0;\n}`,
+    python: `# Write your code here\nprint("Hello, World!")`,
+    java: `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // your code here\n    }\n}`
+  };
 
+  useEffect(() => {
     const fetchBoilerplate = async () => {
       if (!contestName || !questionName || !token || !questionId || !contestId) {
-        // Fallback to default templates if essential props are missing
+        setCode(defaultCodeTemplates[language]);
         return;
       }
 
       setIsLoadingBoilerplate(true);
       try {
         const boilerplateData = await fetchQuestionBoilerplate(questionId, language, token, contestId, contestName, questionName);
-        console.log("boilerplate code is here", boilerplateData);
         if (boilerplateData) {
           setCode(boilerplateData);
+        } else {
+          setCode(defaultCodeTemplates[language]);
         }
-        // If no boilerplate is found, the default template is already set
       } catch (error) {
         console.error("Failed to fetch boilerplate:", error);
-        // On error, the editor will keep the default template for the selected language
+        setCode(defaultCodeTemplates[language]);
       } finally {
         setIsLoadingBoilerplate(false);
       }
@@ -67,13 +47,12 @@ public class Main {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <div className="flex justify-between mb-2">
-        {/* This dropdown now controls the internal 'language' state */}
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow h-full flex flex-col">
+      <div className="flex justify-between items-center mb-2">
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          className="border p-1 rounded"
+          className="border border-gray-300 dark:border-gray-600 p-1 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           disabled={isLoadingBoilerplate}
         >
           <option value="cpp">C++</option>
@@ -81,32 +60,32 @@ public class Main {
           <option value="java">Java</option>
         </select>
         {isLoadingBoilerplate && (
-          <span className="text-sm text-gray-500">Loading boilerplate...</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Loading boilerplate...</span>
         )}
       </div>
 
-      <Editor
-        height="400px"
-        theme="vs-dark"
-        language={mapLang[language]}
-        value={code}
-        onChange={(value) => setCode(value)}
-        className="border rounded"
-        loading={isLoadingBoilerplate ? "Loading boilerplate..." : undefined}
-      />
+      <div className="flex-grow border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+        <Editor
+          height="100%"
+          theme="vs-dark"
+          language={mapLang[language]}
+          value={code}
+          onChange={(value) => setCode(value)}
+          loading={isLoadingBoilerplate ? "Loading boilerplate..." : "Loading Editor..."}
+        />
+      </div>
 
       <div className="flex gap-3 mt-4">
-        {/* 2. The 'language' from our state is now passed to onRun and onSubmit */}
         <button
           onClick={() => onRun(code, language)}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded disabled:opacity-50"
           disabled={loading || isLoadingBoilerplate}
         >
           Run
         </button>
         <button
           onClick={() => onSubmit(code, language)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50"
           disabled={loading || isLoadingBoilerplate}
         >
           Submit
